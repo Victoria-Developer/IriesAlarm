@@ -5,6 +5,8 @@ YouTube channel search is available by keyword and subscription list.
 
 <img src="https://github.com/user-attachments/assets/993ebaeb-1d57-41d2-ba61-b035a99c3836" width="300" height="600" />
 
+By clicking on "Select channels" button user can manage selected channels.
+
 <img src="https://github.com/user-attachments/assets/9eacc545-fddb-44bb-9006-8b1f40b910de" width="300" height="600" />
 
 ***
