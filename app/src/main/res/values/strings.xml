@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">IriesAlarm</string>
+    <string name="notification_description">Alarm notification</string>
+</resources>
