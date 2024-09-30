@@ -77,8 +77,9 @@ class RingtonePlayingService : Service() {
 
             val alarmUri: Uri?
             val ringtoneName: String
+            val videoId = video?.getId()
 
-            if (video == null) {
+            if (videoId == null) {
                 alarmUri = RingtoneManager
                     .getDefaultUri(RingtoneManager.TYPE_ALARM)
                 ringtoneName = "default ringtone"

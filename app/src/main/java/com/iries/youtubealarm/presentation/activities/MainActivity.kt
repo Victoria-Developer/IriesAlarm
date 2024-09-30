@@ -13,16 +13,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.iries.youtubealarm.presentation.navigation.AppNavigation
 import com.iries.youtubealarm.presentation.theme.IriesAlarmTheme
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLException
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 
 @AndroidEntryPoint
@@ -69,6 +65,7 @@ class MainActivity : ComponentActivity() {
             if (!areNotificationsEnabled)
                 requestNotificationsPermission()
         }
+
     }
 
     private fun requestNotificationsPermission() {

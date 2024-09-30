@@ -34,7 +34,7 @@ class YTChannel() :
         this.title = snippet.title
         this.channelId = snippet.resourceId.channelId
         this.iconUrl = snippet.thumbnails.default.url
-        generateUploadsId()
+        this.uploadsId = snippet.resourceId.playlistId
     }
 
     private fun generateUploadsId() {
