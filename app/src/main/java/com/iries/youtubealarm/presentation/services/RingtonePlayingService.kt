@@ -7,13 +7,13 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.IBinder
 import com.google.api.services.youtube.YouTube
-import com.iries.youtubealarm.data.UserConfigs
+import com.iries.youtubealarm.domain.models.UserConfigs
 import com.iries.youtubealarm.data.dao.ChannelsDao
-import com.iries.youtubealarm.data.Video
+import com.iries.youtubealarm.domain.models.Video
 import com.iries.youtubealarm.domain.ConfigsReader
 import com.iries.youtubealarm.domain.constants.Extra
-import com.iries.youtubealarm.domain.youtube_api.YoutubeAuth
-import com.iries.youtubealarm.domain.youtube_api.YoutubeSearch
+import com.iries.youtubealarm.data.youtube.YoutubeAuth
+import com.iries.youtubealarm.data.youtube.YoutubeSearchApi
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLException
 import com.yausername.youtubedl_android.YoutubeDLRequest
@@ -34,26 +34,24 @@ class RingtonePlayingService : Service() {
     @Inject
     lateinit var channelsDao: ChannelsDao
 
+    @Inject
+    lateinit var youtubeSearchApi: YoutubeSearchApi
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
         serviceScope.launch(Dispatchers.IO) {
             channelId = channelsDao.getRandomChannelId()
-            settings = ConfigsReader.load()
-            if (channelId == null)
-                playRingtone(null)
-            else
-                startService()
+            settings = ConfigsReader(this@RingtonePlayingService).loadUserConfigs()
+            if (channelId == null) playRingtone(null)
+            else startService()
         }
 
         return START_STICKY
     }
 
     private fun startService() {
-        val youTube: YouTube = YoutubeAuth.getYoutube(this)
-
         serviceScope.launch(Dispatchers.IO) {
-            val video: Video? = YoutubeSearch.findVideoByFilters(
-                youTube,
+            val video: Video? = youtubeSearchApi.findVideoByFilters(
                 channelId,
                 settings.getOrder(),
                 settings.getDuration()

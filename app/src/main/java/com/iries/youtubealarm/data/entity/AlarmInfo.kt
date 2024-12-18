@@ -5,6 +5,7 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.iries.youtubealarm.domain.constants.DayOfWeek
 import com.iries.youtubealarm.domain.converters.MapTypeConverter
+import java.util.Locale
 
 @Entity(tableName = "ALARMS")
 class AlarmInfo {
@@ -40,7 +41,7 @@ class AlarmInfo {
     }
 
     fun getFormattedTime(): String {
-        return String.format("%02d:%02d", hour, minute)
+        return String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
     }
 
     fun setAlarmId(id: Long) {

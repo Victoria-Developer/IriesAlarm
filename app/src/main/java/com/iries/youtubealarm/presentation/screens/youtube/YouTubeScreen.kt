@@ -1,0 +1,152 @@
+package com.iries.youtubealarm.presentation.screens.youtube
+
+import android.app.Activity
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.iries.youtubealarm.data.youtube.YoutubeAuth
+import com.iries.youtubealarm.presentation.common.SearchBar
+import com.iries.youtubealarm.presentation.common.Thumbnail
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
+@Composable
+fun YouTubeScreen(onNavigateToAlarmsScreen: () -> Unit) {
+
+    val context = LocalContext.current
+    val viewModel: YouTubeViewModel = hiltViewModel()
+    val visibleChannels = viewModel.visibleChannels.collectAsState()
+
+    //log-in launcher
+    val loginLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result: ActivityResult ->
+        if (result.resultCode == Activity.RESULT_OK)
+            viewModel.showSubscriptions(context)
+        else Toast.makeText(
+            context, "Login failed. Please, try again", Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    Scaffold(
+        content = { innerPadding ->
+            Column(
+                modifier = Modifier.padding(innerPadding) //0.dp, 20.dp
+            ) {
+                SearchBar(
+                    onSearch = {
+                        println(it)
+                        viewModel.showChannelsByKeyWord(it)
+                    }
+                )
+
+                Row(
+                    modifier = Modifier.padding(40.dp, 15.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Button(onClick = { viewModel.showDBChannels() }) {
+                        Text("Selected channels")
+                    }
+
+                    Button(
+                        onClick = {
+                            viewModel.viewModelScope.launch(Dispatchers.IO) {
+                                val signedInAccount = GoogleSignIn.getLastSignedInAccount(context)
+                                val signInIntent = YoutubeAuth.getSignInClient(context).signInIntent
+
+                                if (signedInAccount != null) viewModel.showSubscriptions(context)
+                                else loginLauncher.launch(signInIntent)
+                            }
+                        }
+                    ) {
+                        Text("My subscriptions")
+                    }
+                }
+
+                if (!visibleChannels.value.isNullOrEmpty())
+                    LazyColumn {
+                        items(visibleChannels.value!!.toList()) {
+                            Row {
+                                val visibleChannel = it
+                                val dbMatch = viewModel.isDBChannel(
+                                    visibleChannel.getChannelId()
+                                )
+                                val isChecked = remember(dbMatch != null) {
+                                    mutableStateOf(dbMatch != null)
+                                }
+
+                                Checkbox(
+                                    checked = isChecked.value,
+                                    onCheckedChange = {
+                                        if (it)
+                                            viewModel.addChannelToDB(visibleChannel)
+                                        else
+                                            viewModel.removeChannelFromDB(dbMatch!!)
+                                        isChecked.value = it
+                                    }
+                                )
+
+                                Thumbnail(context, visibleChannel.getIconUrl())
+
+                                Spacer(Modifier.padding(20.dp, 0.dp))
+
+                                Text(visibleChannel.getTitle().toString())
+                            }
+                        }
+                    }
+            }
+        },
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+            ) {
+                ElevatedButton(
+                    modifier = Modifier.align(Alignment.Center),
+                    onClick = {
+                        if (viewModel.isDBEmpty())
+                            Toast.makeText(
+                                context, "You didn't choose any YouTube channels. " +
+                                        "Default alarm ringtone is on.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        onNavigateToAlarmsScreen()
+                    },
+                    content = { Text("Alarms") }
+                )
+            }
+
+        }
+    )
+
+
+}
+

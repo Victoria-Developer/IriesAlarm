@@ -26,7 +26,7 @@ class NotificationService : Service() {
         val ringtoneName = intent
             .getStringExtra(Extra.RINGTONE_NAME_EXTRA.extraName)
 
-        if (Settings.canDrawOverlays(this)) {
+        /*if (Settings.canDrawOverlays(this)) {
             println("cal draw overlay")
             val fullScreenIntent = Intent(
                 this,
@@ -37,7 +37,7 @@ class NotificationService : Service() {
             fullScreenIntent
                 .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(fullScreenIntent)
-        } else createNotification(ringtoneName)
+        } else*/ createNotification(ringtoneName)
 
         return super.onStartCommand(intent, flags, startId)
     }
@@ -91,7 +91,7 @@ class NotificationService : Service() {
             .setSmallIcon(R.drawable.baseline_access_alarm_24)
             .setContentTitle(resources.getString(R.string.app_name))
             .setContentText("Now playing: $ringtoneName")
-            //.setFullScreenIntent(pendingIntent, true)
+            .setFullScreenIntent(pendingIntent, true)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setContentIntent(pendingIntent)
             .setOngoing(true)

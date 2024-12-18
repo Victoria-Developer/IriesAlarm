@@ -1,55 +1,39 @@
 package com.iries.youtubealarm.domain
 
-import com.google.gson.Gson
-import com.iries.youtubealarm.data.UserConfigs
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileWriter
-import java.io.IOException
+import android.content.Context
+import android.content.SharedPreferences
+import com.iries.youtubealarm.domain.constants.Duration
+import com.iries.youtubealarm.domain.constants.Order
+import com.iries.youtubealarm.domain.models.UserConfigs
 
-object ConfigsReader {
-    private const val CONFIGS_PATH
-            : String = "data/data/com.iries.youtubealarm/files/app_data/settings.json"
+class ConfigsReader(context: Context) {
+    private val configsName = "alarm_settings"
+    private val prefs: SharedPreferences = context.getSharedPreferences(configsName, 0)
+    private val editor: SharedPreferences.Editor = prefs.edit()
 
-    fun load(): UserConfigs {
-        val configs: UserConfigs
-        var json = ""
-        try {
-            val f = createFile()
-            val `is` = FileInputStream(f)
-            val size = `is`.available()
-            val buffer = ByteArray(size)
-            `is`.read(buffer)
-            `is`.close()
-            json = String(buffer)
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-
-        val gson = Gson()
-
-        configs = if (json.isEmpty()) UserConfigs()
-        else gson.fromJson(json, UserConfigs::class.java)
-        return configs
+    object Keys {
+        const val IS_FIRST_LAUNCH = "is_first_launch"
+        const val DURATION_ID_KEY = "duration_id"
+        const val ORDER_ID_KEY = "order_id"
     }
 
-    fun save(configs: UserConfigs?) {
-        try {
-            createFile()
-            val fileWriter = FileWriter(CONFIGS_PATH)
-            fileWriter.write(Gson().toJson(configs))
-            fileWriter.flush()
-            fileWriter.close()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
+    fun loadUserConfigs(): UserConfigs {
+        val isFirstLaunch = prefs.getBoolean(Keys.IS_FIRST_LAUNCH, true)
+        if (isFirstLaunch) editor.putBoolean(Keys.IS_FIRST_LAUNCH, false)
+        val orderId = prefs.getInt(Keys.ORDER_ID_KEY, 0)
+        val durationId = prefs.getInt(Keys.DURATION_ID_KEY, 0)
+
+        val userConfigs = UserConfigs()
+        userConfigs.setFirstLaunch(isFirstLaunch)
+        userConfigs.setOrder(Order.entries[orderId])
+        userConfigs.setDuration(Duration.entries[durationId])
+        return userConfigs
     }
 
-    @Throws(IOException::class)
-    private fun createFile(): File {
-        val file = File(CONFIGS_PATH)
-        file.parentFile?.mkdirs()
-        file.createNewFile()
-        return file
+    fun saveUserConfigs(userConfigs: UserConfigs) {
+        editor.putBoolean(Keys.IS_FIRST_LAUNCH, userConfigs.getIsFirstLaunch())
+        editor.putInt(Keys.ORDER_ID_KEY, userConfigs.getOrder().ordinal)
+        editor.putInt(Keys.DURATION_ID_KEY, userConfigs.getDuration().ordinal)
     }
+
 }

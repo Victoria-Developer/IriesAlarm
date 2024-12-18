@@ -1,4 +1,4 @@
-package com.iries.youtubealarm.presentation.viewmodels
+package com.iries.youtubealarm.presentation.screens.alarms
 
 import android.content.Context
 import androidx.lifecycle.LiveData
@@ -26,28 +26,24 @@ class AlarmsViewModel @Inject constructor(
     fun insert(
         context: Context,
         alarm: AlarmInfo
-    ) {
-        viewModelScope.launch(Dispatchers.IO) {
-            alarm.setAlarmId(alarmsRepo.insert(alarm))
-            setRepeatingAlarm(context, alarm)
-        }
-
+    ) = viewModelScope.launch(Dispatchers.IO) {
+        alarm.setAlarmId(alarmsRepo.insert(alarm))
+        setRepeatingAlarm(context, alarm)
     }
 
-    fun update(alarm: AlarmInfo) {
-        viewModelScope.launch(Dispatchers.IO) {
-            alarmsRepo.update(alarm)
-        }
+    fun update(
+        alarm: AlarmInfo
+    ) = viewModelScope.launch(Dispatchers.IO) {
+        alarmsRepo.update(alarm)
     }
 
     fun remove(
         context: Context,
         alarm: AlarmInfo
-    ) {
-        viewModelScope.launch(Dispatchers.IO) {
-            alarmsRepo.delete(alarm)
-            stopAlarms(context, alarm.getDaysId())
-        }
+    ) = viewModelScope.launch(Dispatchers.IO) {
+        alarmsRepo.delete(alarm)
+        stopAlarms(context, alarm.getDaysId())
+
     }
 
     fun setRepeatingAlarm(

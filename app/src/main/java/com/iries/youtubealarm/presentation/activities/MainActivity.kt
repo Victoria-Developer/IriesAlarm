@@ -14,6 +14,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
+import com.iries.youtubealarm.domain.ConfigsReader
+import com.iries.youtubealarm.domain.models.UserConfigs
 import com.iries.youtubealarm.presentation.navigation.AppNavigation
 import com.iries.youtubealarm.presentation.theme.IriesAlarmTheme
 import com.yausername.youtubedl_android.YoutubeDL
@@ -23,6 +25,9 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private lateinit var configsReader: ConfigsReader
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -33,11 +38,16 @@ class MainActivity : ComponentActivity() {
             Log.e(TAG, "failed to initialize youtubedl-android", e)
         }
 
+        configsReader = ConfigsReader(this)
+        val configs = configsReader.loadUserConfigs()
+        val isFirstLaunch = configs.getIsFirstLaunch()
+
         enableEdgeToEdge()
         setContent {
             IriesAlarmTheme {
                 AppNavigation(
-                    navController = rememberNavController()
+                    navController = rememberNavController(),
+                    isFirstLaunch = isFirstLaunch
                 )
             }
         }
@@ -66,6 +76,17 @@ class MainActivity : ComponentActivity() {
                 requestNotificationsPermission()
         }
 
+    }
+
+    override fun onDestroy() {
+        saveConfigs()
+        super.onDestroy()
+    }
+
+    private fun saveConfigs() {
+        val configs = UserConfigs()
+        configs.setFirstLaunch(false)
+        configsReader.saveUserConfigs(configs)
     }
 
     private fun requestNotificationsPermission() {

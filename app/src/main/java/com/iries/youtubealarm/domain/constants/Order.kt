@@ -1,6 +1,6 @@
 package com.iries.youtubealarm.domain.constants
 
-enum class ORDER(private val orderName: String?) {
+enum class Order(private val orderName: String?) {
     DATE("date"),
     RATING("rating"),
     VIEW_COUNT("viewCount");

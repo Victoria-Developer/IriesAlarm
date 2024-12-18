@@ -1,4 +1,4 @@
-package com.iries.youtubealarm.domain.youtube_api
+package com.iries.youtubealarm.data.youtube
 
 import android.content.Context
 import com.google.android.gms.auth.api.signin.GoogleSignIn

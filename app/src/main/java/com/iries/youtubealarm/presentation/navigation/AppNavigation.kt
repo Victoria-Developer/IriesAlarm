@@ -1,41 +1,41 @@
 package com.iries.youtubealarm.presentation.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.iries.youtubealarm.presentation.screens.AlarmsScreen
-import com.iries.youtubealarm.presentation.screens.ChannelsScreen
-import com.iries.youtubealarm.presentation.screens.MainMenuScreen
-import com.iries.youtubealarm.presentation.viewmodels.AlarmsViewModel
+import com.iries.youtubealarm.presentation.screens.alarms.AlarmsScreen
+import com.iries.youtubealarm.presentation.screens.youtube.YouTubeScreen
 
 @Composable
 fun AppNavigation(
-    navController: NavHostController
+    navController: NavHostController,
+    isFirstLaunch:Boolean
 ) {
-    val context = LocalContext.current
-    val mainMenuPath = Destinations.MainMenuDest.path
 
-    NavHost(navController = navController, startDestination = mainMenuPath) {
+    val ytChannelsPath = Destinations.ChannelsScreenDest.path
+    val alarmsPath = Destinations.AlarmsScreenDest.path
 
-        composable(mainMenuPath) {
-            MainMenuScreen(
-                context = context,
-                { navController.navigate(Destinations.ChannelsScreenDest.path) },
-                { navController.navigate(Destinations.AlarmsScreenDest.path) }
-            )
+    val startDestination = if (isFirstLaunch) ytChannelsPath else alarmsPath
+
+    fun navigate(path: String) {
+        val canPopStack = navController
+            .popBackStack(route = path, inclusive = false)
+        if (!canPopStack) navController.navigate(path)
+    }
+
+    NavHost(navController = navController, startDestination = startDestination) {
+
+        composable(ytChannelsPath) {
+            YouTubeScreen(onNavigateToAlarmsScreen = {
+                navigate(alarmsPath)
+            })
         }
 
-        composable(Destinations.ChannelsScreenDest.path) {
-            ChannelsScreen(
-                context = context
-            )
-        }
-
-        composable(Destinations.AlarmsScreenDest.path) {
-            AlarmsScreen(context = context)
+        composable(alarmsPath) {
+            AlarmsScreen(onNavigateToYouTubeScreen = {
+                navigate(ytChannelsPath)
+            })
         }
     }
 }
@@ -43,16 +43,12 @@ fun AppNavigation(
 sealed interface Destinations {
     val path: String
 
-    data object MainMenuDest : Destinations {
-        override val path = "Main_Menu_Screen"
-    }
-
     data object ChannelsScreenDest : Destinations {
-        override val path = "Channels_Screen"
+        override val path = "YouTube"
     }
 
     data object AlarmsScreenDest : Destinations {
-        override val path: String = "Alarms_Screen"
+        override val path: String = "Alarms"
     }
 
 }
