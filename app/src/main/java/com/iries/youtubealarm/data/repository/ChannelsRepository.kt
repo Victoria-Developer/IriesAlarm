@@ -1,12 +1,12 @@
 package com.iries.youtubealarm.data.repository
 
-import androidx.lifecycle.LiveData
 import com.iries.youtubealarm.data.dao.ChannelsDao
 import com.iries.youtubealarm.data.entity.YTChannel
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class ChannelsRepository @Inject constructor(private var channelsDao: ChannelsDao) {
-    private var allChannels: LiveData<List<YTChannel>> = channelsDao.getAllChannels()
+    private var allChannels: Flow<List<YTChannel>> = channelsDao.getAllChannels()
 
     fun insert(channel: YTChannel) {
         channelsDao.insert(channel)
@@ -24,7 +24,7 @@ class ChannelsRepository @Inject constructor(private var channelsDao: ChannelsDa
         channelsDao.deleteAll()
     }
 
-    fun getAllChannels(): LiveData<List<YTChannel>> {
+    fun getAllChannels(): Flow<List<YTChannel>> {
         return allChannels
     }
 

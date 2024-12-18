@@ -1,13 +1,12 @@
 package com.iries.youtubealarm.data.repository
 
-import androidx.lifecycle.LiveData
 import com.iries.youtubealarm.data.dao.AlarmsDao
 import com.iries.youtubealarm.data.entity.AlarmInfo
-import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class AlarmsRepository @Inject constructor(private var alarmsDao: AlarmsDao) {
-    private var allAlarms: LiveData<List<AlarmInfo>> = alarmsDao.getAllAlarms()
+    private var allAlarms: Flow<List<AlarmInfo>> = alarmsDao.getAllAlarms()
 
     fun insert(alarmInfo: AlarmInfo) : Long{
        return alarmsDao.insert(alarmInfo)
@@ -25,7 +24,7 @@ class AlarmsRepository @Inject constructor(private var alarmsDao: AlarmsDao) {
         alarmsDao.deleteAll()
     }
 
-    fun getAllAlarms(): LiveData<List<AlarmInfo>> {
+    fun getAllAlarms(): Flow<List<AlarmInfo>> {
         return allAlarms
     }
 }

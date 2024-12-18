@@ -22,8 +22,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,7 +43,7 @@ fun AlarmsScreen(onNavigateToYouTubeScreen: () -> Unit) {
     val context = LocalContext.current
     val viewModel: AlarmsViewModel = hiltViewModel()
     var showDialog by remember { mutableStateOf(false) }
-    val alarmsList = viewModel.getAllAlarms().observeAsState()
+    val alarmsList = viewModel.allAlarms.collectAsState()
     val selectedAlarm: MutableState<AlarmInfo?> = remember { mutableStateOf(null) }
 
     Scaffold(
@@ -74,7 +74,7 @@ fun AlarmsScreen(onNavigateToYouTubeScreen: () -> Unit) {
                 if (showDialog) DatePicker(
                     onCloseDialog = { showDialog = false },
                     onConfirm = {
-                        if (alarmsList.value?.contains(it) == true)
+                        if (alarmsList.value.contains(it))
                             viewModel.update(it)
                         else
                             viewModel.insert(context, it)
@@ -83,29 +83,29 @@ fun AlarmsScreen(onNavigateToYouTubeScreen: () -> Unit) {
                 )
 
                 LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                    alarmsList.value?.let { alarms ->
-                        items(alarms.toList()) { alarm ->
-                            AlarmItem(
-                                alarm = alarm,
-                                onRemoveAlarm = {
-                                    viewModel.remove(context, alarm)
-                                },
-                                onEditAlarm = {
-                                    selectedAlarm.value = alarm
-                                    showDialog = true
-                                },
-                                onSwitchAlarm = {
-                                    if (alarm.isActive()) {
-                                        AlarmManager.stopAlarm(context)
-                                        // no need to stop all alarms
-                                        viewModel.stopAlarms(context, alarm.getDaysId())
-                                    } else
-                                        viewModel.setRepeatingAlarm(context, alarm)
-                                    alarm.setActive(it)
-                                    viewModel.update(alarm)
+                    items(alarmsList.value.toList()) { alarm ->
+                        AlarmItem(
+                            alarm = alarm,
+                            onRemoveAlarm = {
+                                viewModel.remove(context, alarm)
+                            },
+                            onEditAlarm = {
+                                selectedAlarm.value = alarm
+                                showDialog = true
+                            },
+                            onSwitchAlarm = {
+                                if (alarm.isActive()) {
+                                    println("Stop alarm alarm")
+                                    AlarmManager.stopAlarm(context)
+                                    viewModel.stopAlarms(context, alarm.getDaysId())
+                                } else {
+                                    println("Set repeating alarm")
+                                    viewModel.setRepeatingAlarm(context, alarm)
                                 }
-                            )
-                        }
+                                alarm.setActive(it)
+                                viewModel.update(alarm)
+                            }
+                        )
                     }
                 }
             }

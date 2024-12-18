@@ -1,12 +1,12 @@
 package com.iries.youtubealarm.data.dao
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import com.iries.youtubealarm.data.entity.AlarmInfo
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AlarmsDao {
@@ -23,5 +23,5 @@ interface AlarmsDao {
     fun deleteAll()
 
     @Query("SELECT * FROM ALARMS")
-    fun getAllAlarms(): LiveData<List<AlarmInfo>>
+    fun getAllAlarms(): Flow<List<AlarmInfo>>
 }

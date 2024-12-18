@@ -2,10 +2,6 @@ package com.iries.youtubealarm.data.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.google.api.services.youtube.model.SearchResult
-import com.google.api.services.youtube.model.SearchResultSnippet
-import com.google.api.services.youtube.model.Subscription
-import com.google.api.services.youtube.model.SubscriptionSnippet
 import java.io.Serializable
 
 @Entity(tableName = "CHANNELS")

@@ -95,7 +95,7 @@ fun YouTubeScreen(onNavigateToAlarmsScreen: () -> Unit) {
                         items(visibleChannels.value!!.toList()) {
                             Row {
                                 val visibleChannel = it
-                                val dbMatch = viewModel.isDBChannel(
+                                val dbMatch = viewModel.getDBChannelById(
                                     visibleChannel.getChannelId()
                                 )
                                 val isChecked = remember(dbMatch != null) {

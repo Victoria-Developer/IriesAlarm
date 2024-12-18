@@ -102,7 +102,7 @@ dependencies {
     implementation (libs.wheelpickercompose)
 
     // Livedata observeAsState
-    implementation (libs.androidx.runtime.livedata)
+    //implementation (libs.androidx.runtime.livedata)
 
     // Firebase dependencies for sha-1
     implementation(platform(libs.firebase.bom))
@@ -130,6 +130,7 @@ dependencies {
     // Room
     implementation(libs.androidx.room.runtime)
     kapt(libs.androidx.room.compiler)
+    implementation (libs.androidx.room.ktx)
 
     // Hilt
     implementation(libs.hilt.android)

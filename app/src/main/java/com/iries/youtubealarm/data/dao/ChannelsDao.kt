@@ -1,12 +1,12 @@
 package com.iries.youtubealarm.data.dao
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import com.iries.youtubealarm.data.entity.YTChannel
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ChannelsDao {
@@ -23,7 +23,7 @@ interface ChannelsDao {
     fun deleteAll()
 
     @Query("SELECT * FROM CHANNELS")
-    fun getAllChannels(): LiveData<List<YTChannel>>
+    fun getAllChannels(): Flow<List<YTChannel>>
 
     @Query("SELECT COUNT(id) FROM CHANNELS")
     fun getChannelsCount(): Int

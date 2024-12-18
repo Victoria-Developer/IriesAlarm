@@ -1,7 +1,6 @@
 package com.iries.youtubealarm.presentation.screens.alarms
 
 import android.content.Context
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iries.youtubealarm.data.entity.AlarmInfo
@@ -10,6 +9,8 @@ import com.iries.youtubealarm.domain.AlarmManager
 import com.iries.youtubealarm.domain.constants.DayOfWeek
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -17,11 +18,18 @@ import javax.inject.Inject
 class AlarmsViewModel @Inject constructor(
     private val alarmsRepo: AlarmsRepository
 ) : ViewModel() {
-    private var allAlarms: LiveData<List<AlarmInfo>> = alarmsRepo.getAllAlarms()
 
-    fun getAllAlarms(): LiveData<List<AlarmInfo>> {
-        return allAlarms
+    private val _allAlarms = MutableStateFlow<List<AlarmInfo>>(emptyList())
+    val allAlarms: StateFlow<List<AlarmInfo>> = _allAlarms
+
+    init {
+        viewModelScope.launch {
+            alarmsRepo.getAllAlarms().collect { channels ->
+                _allAlarms.value = channels
+            }
+        }
     }
+
 
     fun insert(
         context: Context,
@@ -43,7 +51,6 @@ class AlarmsViewModel @Inject constructor(
     ) = viewModelScope.launch(Dispatchers.IO) {
         alarmsRepo.delete(alarm)
         stopAlarms(context, alarm.getDaysId())
-
     }
 
     fun setRepeatingAlarm(

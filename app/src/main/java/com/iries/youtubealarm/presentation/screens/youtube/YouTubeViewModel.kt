@@ -1,7 +1,6 @@
 package com.iries.youtubealarm.presentation.screens.youtube
 
 import android.content.Context
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iries.youtubealarm.data.entity.YTChannel
@@ -22,25 +21,35 @@ class YouTubeViewModel @Inject constructor(
     private val youtubeSearchApi: YoutubeSearchApi
 ) : ViewModel() {
 
-    private val dbChannels: LiveData<List<YTChannel>> = channelsRepo.getAllChannels()
+    private val _dbChannels = MutableStateFlow<List<YTChannel>>(emptyList())
+    private val dbChannels: StateFlow<List<YTChannel>> = _dbChannels
 
     private val _visibleChannels = MutableStateFlow<List<YTChannel>?>(arrayListOf())
     val visibleChannels: StateFlow<List<YTChannel>?> = _visibleChannels
 
-    fun isDBChannel(channelId: String?): YTChannel? {
-        return dbChannels.value?.firstOrNull { dbChannel ->
+    init {
+        viewModelScope.launch {
+            channelsRepo.getAllChannels().collect { channels ->
+                _dbChannels.value = channels
+            }
+        }
+    }
+
+    fun getDBChannelById(channelId: String?): YTChannel? {
+        return dbChannels.value.firstOrNull { dbChannel ->
             dbChannel.getChannelId() == channelId
         } // Channel in db with the same channelId as in the search result
     }
 
     fun isDBEmpty(): Boolean {
-        return dbChannels.value.isNullOrEmpty()
+        return dbChannels.value.isEmpty()
     }
 
     fun addChannelToDB(
         ytChannel: YTChannel
     ) = viewModelScope.launch(Dispatchers.IO) {
         channelsRepo.insert(ytChannel)
+        println(dbChannels.value.size)
     }
 
     fun removeChannelFromDB(
@@ -61,7 +70,7 @@ class YouTubeViewModel @Inject constructor(
     }
 
     fun showSubscriptions(
-       context: Context
+        context: Context
     ) = viewModelScope.launch(Dispatchers.IO) {
         val youTube = YoutubeAuth.getYoutube(context)
         val subs = youtubeSearchApi.getSubscriptions(youTube)
