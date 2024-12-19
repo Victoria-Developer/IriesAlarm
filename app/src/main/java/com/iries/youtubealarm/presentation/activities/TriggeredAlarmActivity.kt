@@ -3,9 +3,7 @@ package com.iries.youtubealarm.presentation.activities
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
-import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
@@ -23,8 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.iries.youtubealarm.domain.constants.Extra
 import com.iries.youtubealarm.domain.AlarmManager
+import com.iries.youtubealarm.domain.constants.Extra
 
 
 class TriggeredAlarmActivity : AppCompatActivity() {
@@ -38,18 +36,10 @@ class TriggeredAlarmActivity : AppCompatActivity() {
         ringtoneText = "Now playing: \n" + savedInstanceState
             ?.getString(Extra.RINGTONE_NAME_EXTRA.extraName)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            setShowWhenLocked(true)
-            setTurnScreenOn(true)
-            val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
-            keyguardManager.requestDismissKeyguard(this, null)
-        } else {
-            window.addFlags(
-                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
-                        WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                        WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-            )
-        }
+        setShowWhenLocked(true)
+        setTurnScreenOn(true)
+        val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        keyguardManager.requestDismissKeyguard(this, null)
 
         setContent {
             TriggeredAlarmScreen()
@@ -93,7 +83,7 @@ class TriggeredAlarmActivity : AppCompatActivity() {
     }
 
     private fun snooze() {
-        AlarmManager.stopAlarm(this)
+        AlarmManager.stopCurrentAlarm(this)
         println("Alarm Snoozed")
         //set new one shot alarm
         AlarmManager.setAlarm(
@@ -105,7 +95,7 @@ class TriggeredAlarmActivity : AppCompatActivity() {
     }
 
     private fun dismiss() {
-        AlarmManager.stopAlarm(this)
+        AlarmManager.stopCurrentAlarm(this)
         println("Alarm Dismissed")
         toMainActivity()
     }

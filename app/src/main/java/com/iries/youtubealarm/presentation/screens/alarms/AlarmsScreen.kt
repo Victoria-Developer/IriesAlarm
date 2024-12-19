@@ -75,11 +75,13 @@ fun AlarmsScreen(onNavigateToYouTubeScreen: () -> Unit) {
                     onCloseDialog = { showDialog = false },
                     onConfirm = {
                         if (alarmsList.value.contains(it))
-                            viewModel.update(it)
-                        else
-                            viewModel.insert(context, it)
+                            viewModel.updateAlarm(it)
+                        else {
+                            viewModel.activateAlarm(context, it)
+                            viewModel.addAlarm(it)
+                        }
                     },
-                    selectedAlarm.value
+                    alarm = selectedAlarm.value
                 )
 
                 LazyColumn(modifier = Modifier.fillMaxWidth()) {
@@ -87,23 +89,23 @@ fun AlarmsScreen(onNavigateToYouTubeScreen: () -> Unit) {
                         AlarmItem(
                             alarm = alarm,
                             onRemoveAlarm = {
-                                viewModel.remove(context, alarm)
+                                viewModel.removeAlarm(context, alarm)
                             },
                             onEditAlarm = {
                                 selectedAlarm.value = alarm
                                 showDialog = true
                             },
                             onSwitchAlarm = {
-                                if (alarm.isActive()) {
-                                    println("Stop alarm alarm")
-                                    AlarmManager.stopAlarm(context)
-                                    viewModel.stopAlarms(context, alarm.getDaysId())
-                                } else {
+                                if (it) {
                                     println("Set repeating alarm")
-                                    viewModel.setRepeatingAlarm(context, alarm)
+                                    viewModel.activateAlarm(context, alarm)
+                                } else {
+                                    println("Stop alarm alarm")
+                                    AlarmManager.stopCurrentAlarm(context)
+                                    viewModel.cancelAlarms(context, alarm.getDaysId())
                                 }
                                 alarm.setActive(it)
-                                viewModel.update(alarm)
+                                viewModel.updateAlarm(alarm)
                             }
                         )
                     }

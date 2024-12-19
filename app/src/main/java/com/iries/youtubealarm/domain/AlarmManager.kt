@@ -70,7 +70,7 @@ object AlarmManager {
         alarmManager.setExact(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
     }
 
-    fun stopAlarm(context: Context) {
+    fun stopCurrentAlarm(context: Context) {
         val stopIntent = Intent(context, RingtonePlayingService::class.java)
         context.stopService(stopIntent)
     }

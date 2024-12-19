@@ -31,38 +31,37 @@ class AlarmsViewModel @Inject constructor(
     }
 
 
-    fun insert(
-        context: Context,
+    fun addAlarm(
         alarm: AlarmInfo
     ) = viewModelScope.launch(Dispatchers.IO) {
         alarm.setAlarmId(alarmsRepo.insert(alarm))
-        setRepeatingAlarm(context, alarm)
     }
 
-    fun update(
+    fun updateAlarm(
         alarm: AlarmInfo
     ) = viewModelScope.launch(Dispatchers.IO) {
         alarmsRepo.update(alarm)
     }
 
-    fun remove(
+    fun removeAlarm(
         context: Context,
         alarm: AlarmInfo
     ) = viewModelScope.launch(Dispatchers.IO) {
         alarmsRepo.delete(alarm)
-        stopAlarms(context, alarm.getDaysId())
+        cancelAlarms(context, alarm.getDaysId())
     }
 
-    fun setRepeatingAlarm(
+    fun activateAlarm(
         context: Context,
         alarm: AlarmInfo
     ) {
+        alarm.setActive(true)
         alarm.getDaysId().keys.forEach {
             AlarmManager.setRepeatingAlarm(context, alarm, it)
         }
     }
 
-    fun stopAlarms(
+    fun cancelAlarms(
         context: Context,
         daysId: HashMap<DayOfWeek, Int>
     ) {

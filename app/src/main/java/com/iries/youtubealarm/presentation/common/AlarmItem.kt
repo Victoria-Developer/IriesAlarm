@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -37,7 +35,7 @@ fun AlarmItem(
     onEditAlarm: () -> Unit,
     onSwitchAlarm: (Boolean) -> Unit
 ) {
-    val isTurnOn = remember { mutableStateOf(alarm.isActive()) }
+    val isActive = remember { mutableStateOf(alarm.isActive()) }
 
     Row(
         modifier = Modifier
@@ -77,9 +75,9 @@ fun AlarmItem(
         ) {
 
             Switch(
-                checked = isTurnOn.value,
+                checked = isActive.value,
                 onCheckedChange = {
-                    isTurnOn.value = it
+                    isActive.value = it
                     onSwitchAlarm(it)
                 },
             )

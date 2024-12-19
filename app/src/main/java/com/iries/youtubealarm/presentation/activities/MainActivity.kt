@@ -78,15 +78,11 @@ class MainActivity : ComponentActivity() {
 
     }
 
-    override fun onDestroy() {
-        saveConfigs()
-        super.onDestroy()
-    }
-
-    private fun saveConfigs() {
+    override fun onStop() {
         val configs = UserConfigs()
         configs.setFirstLaunch(false)
         configsReader.saveUserConfigs(configs)
+        super.onStop()
     }
 
     private fun requestNotificationsPermission() {
