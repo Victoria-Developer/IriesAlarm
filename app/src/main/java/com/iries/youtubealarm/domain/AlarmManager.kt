@@ -67,7 +67,7 @@ object AlarmManager {
 
         val alarmManager = context
             .getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        alarmManager.setExact(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
     }
 
     fun stopCurrentAlarm(context: Context) {
