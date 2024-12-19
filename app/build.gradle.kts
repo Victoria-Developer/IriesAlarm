@@ -101,9 +101,6 @@ dependencies {
     // Fancy scrollable timePicker
     implementation (libs.wheelpickercompose)
 
-    // Livedata observeAsState
-    //implementation (libs.androidx.runtime.livedata)
-
     // Firebase dependencies for sha-1
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
@@ -124,8 +121,8 @@ dependencies {
     implementation(libs.gson)
 
     // mp3 converter
-    implementation(libs.library)
-    implementation(libs.ffmpeg)
+    implementation(libs.youtubedl.android.library)
+    implementation(libs.youtubedl.android.ffmpeg)
 
     // Room
     implementation(libs.androidx.room.runtime)

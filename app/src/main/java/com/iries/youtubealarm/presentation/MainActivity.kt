@@ -1,4 +1,4 @@
-package com.iries.youtubealarm.presentation.activities
+package com.iries.youtubealarm.presentation
 
 import android.Manifest
 import android.app.NotificationManager
@@ -14,13 +14,16 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
+import com.iries.youtubealarm.data.youtube.YoutubeSearchApi
 import com.iries.youtubealarm.domain.ConfigsReader
 import com.iries.youtubealarm.domain.models.UserConfigs
 import com.iries.youtubealarm.presentation.navigation.AppNavigation
 import com.iries.youtubealarm.presentation.theme.IriesAlarmTheme
+import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLException
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
@@ -28,12 +31,15 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var configsReader: ConfigsReader
 
+    @Inject
+    lateinit var youtubeSearchApi: YoutubeSearchApi
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         try {
             YoutubeDL.getInstance().init(applicationContext)
-            // FFmpeg.getInstance().init(this);
+            FFmpeg.getInstance().init(this)
         } catch (e: YoutubeDLException) {
             Log.e(TAG, "failed to initialize youtubedl-android", e)
         }
@@ -52,6 +58,17 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        checkPermissions()
+    }
+
+    override fun onStop() {
+        val configs = UserConfigs()
+        configs.setFirstLaunch(false)
+        configsReader.saveUserConfigs(configs)
+        super.onStop()
+    }
+
+    private fun checkPermissions() {
         if (ContextCompat.checkSelfPermission(
                 applicationContext,
                 Manifest.permission.SYSTEM_ALERT_WINDOW
@@ -75,14 +92,6 @@ class MainActivity : ComponentActivity() {
             if (!areNotificationsEnabled)
                 requestNotificationsPermission()
         }
-
-    }
-
-    override fun onStop() {
-        val configs = UserConfigs()
-        configs.setFirstLaunch(false)
-        configsReader.saveUserConfigs(configs)
-        super.onStop()
     }
 
     private fun requestNotificationsPermission() {

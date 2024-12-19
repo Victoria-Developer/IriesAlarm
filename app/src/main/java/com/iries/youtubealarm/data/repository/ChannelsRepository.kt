@@ -28,4 +28,8 @@ class ChannelsRepository @Inject constructor(private var channelsDao: ChannelsDa
         return allChannels
     }
 
+    fun getRandomChannelId(): String? {
+        return channelsDao.getRandomChannelId()
+    }
+
 }

@@ -1,7 +1,7 @@
 package com.iries.youtubealarm.data.youtube
 
+import android.net.Uri
 import com.google.api.services.youtube.YouTube
-import com.google.api.services.youtube.model.SearchResult
 import com.google.api.services.youtube.model.Subscription
 import com.google.api.services.youtube.model.SubscriptionListResponse
 import com.google.api.services.youtube.model.SubscriptionSnippet
@@ -11,6 +11,10 @@ import com.iries.youtubealarm.data.entity.YTChannel
 import com.iries.youtubealarm.domain.constants.Duration
 import com.iries.youtubealarm.domain.constants.Order
 import com.iries.youtubealarm.domain.models.Video
+import com.yausername.youtubedl_android.YoutubeDL
+import com.yausername.youtubedl_android.YoutubeDLException
+import com.yausername.youtubedl_android.YoutubeDLRequest
+import com.yausername.youtubedl_android.mapper.VideoInfo
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
@@ -19,7 +23,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import java.io.IOException
-import java.util.function.Consumer
 import javax.inject.Inject
 
 class YoutubeSearchApi @Inject constructor(private val httpClient: HttpClient) {
@@ -125,14 +128,14 @@ class YoutubeSearchApi @Inject constructor(private val httpClient: HttpClient) {
     }
 
     private fun parseVideoResponse(jsonString: String): List<Video> {
+        println(jsonString)
         val jsonObject = JsonParser.parseString(jsonString).asJsonObject
         val itemsArray = jsonObject.getAsJsonArray("items")
 
-        return itemsArray.map {
-            val snippet = it.asJsonObject.getAsJsonObject("snippet")
-            val id = snippet
-                .getAsJsonObject("id")
-                .get("videoId").asString
+        return itemsArray.map { item ->
+            val itemObject = item.asJsonObject
+            val snippet = itemObject.getAsJsonObject("snippet")
+            val id = itemObject.getAsJsonObject("id").get("videoId").asString
 
             Video(
                 id = id,
@@ -140,4 +143,21 @@ class YoutubeSearchApi @Inject constructor(private val httpClient: HttpClient) {
             )
         }
     }
+
+    fun extractAudio(videoURL: String): Uri {
+        val request = YoutubeDLRequest(videoURL)
+        request.addOption("--extract-audio")
+        val streamInfo: VideoInfo
+        try {
+            streamInfo = YoutubeDL.getInstance().getInfo(request)
+        } catch (e: YoutubeDLException) {
+            throw RuntimeException(e)
+        } catch (e: InterruptedException) {
+            throw RuntimeException(e)
+        } catch (e: YoutubeDL.CanceledException) {
+            throw RuntimeException(e)
+        }
+        return Uri.parse(streamInfo.url)
+    }
+
 }

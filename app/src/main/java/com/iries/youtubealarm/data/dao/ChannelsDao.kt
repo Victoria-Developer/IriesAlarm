@@ -30,5 +30,5 @@ interface ChannelsDao {
 
     //@Query("SELECT channelId FROM CHANNELS WHERE id = :dbId")
     @Query("SELECT channelId FROM CHANNELS ORDER BY RANDOM() LIMIT 1")
-    fun getRandomChannelId( /*long dbId*/): String?
+    fun getRandomChannelId(): String?
 }

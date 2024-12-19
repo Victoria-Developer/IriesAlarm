@@ -2,37 +2,30 @@ package com.iries.youtubealarm.presentation.services
 
 import android.app.Service
 import android.content.Intent
-import android.media.Ringtone
+import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.IBinder
-import com.google.api.services.youtube.YouTube
-import com.iries.youtubealarm.domain.models.UserConfigs
-import com.iries.youtubealarm.data.dao.ChannelsDao
-import com.iries.youtubealarm.domain.models.Video
+import com.iries.youtubealarm.data.repository.ChannelsRepository
+import com.iries.youtubealarm.data.youtube.YoutubeSearchApi
 import com.iries.youtubealarm.domain.ConfigsReader
 import com.iries.youtubealarm.domain.constants.Extra
-import com.iries.youtubealarm.data.youtube.YoutubeAuth
-import com.iries.youtubealarm.data.youtube.YoutubeSearchApi
-import com.yausername.youtubedl_android.YoutubeDL
-import com.yausername.youtubedl_android.YoutubeDLException
-import com.yausername.youtubedl_android.YoutubeDLRequest
-import com.yausername.youtubedl_android.mapper.VideoInfo
+import com.iries.youtubealarm.domain.models.UserConfigs
+import com.iries.youtubealarm.domain.models.Video
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class RingtonePlayingService : Service() {
-    private var ringtone: Ringtone? = null
-    private var channelId: String? = null
-    private lateinit var settings: UserConfigs
+    private var mediaPlayer: MediaPlayer? = null
     private var serviceScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 
     @Inject
-    lateinit var channelsDao: ChannelsDao
+    lateinit var channelsRepository: ChannelsRepository
 
     @Inject
     lateinit var youtubeSearchApi: YoutubeSearchApi
@@ -40,26 +33,64 @@ class RingtonePlayingService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
         serviceScope.launch(Dispatchers.IO) {
-            channelId = channelsDao.getRandomChannelId()
-            settings = ConfigsReader(this@RingtonePlayingService).loadUserConfigs()
-            if (channelId == null) playRingtone(null)
-            else startService()
+            val channelId = channelsRepository.getRandomChannelId()
+            val userConfigs = ConfigsReader(
+                this@RingtonePlayingService
+            ).loadUserConfigs()
+            startService(channelId, userConfigs)
         }
 
         return START_STICKY
     }
 
-    private fun startService() {
-        serviceScope.launch(Dispatchers.IO) {
+    private suspend fun startService(
+        channelId: String?,
+        userConfigs: UserConfigs
+    ) {
+        var youtubeVideoUri: Uri? = null
+        val defaultAlarmUri = RingtoneManager
+            .getDefaultUri(RingtoneManager.TYPE_ALARM)
+
+        val defaultRingtoneName = "Default ringtone"
+        var ringtoneName = defaultRingtoneName
+
+        if (channelId != null) {
             val video: Video? = youtubeSearchApi.findVideoByFilters(
                 channelId,
-                settings.getOrder(),
-                settings.getDuration()
-            )?.get(0)
+                userConfigs.getOrder(),
+                userConfigs.getDuration()
+            )?.firstOrNull()
 
-            playRingtone(video)
+            val videoId = video?.getId()
+
+            if (videoId != null) {
+                println("Extracting audio from video with id $videoId")
+                youtubeVideoUri = youtubeSearchApi.extractAudio(
+                    "https://youtu.be/" + video.getId()
+                )
+                ringtoneName = video.getTitle()
+            }
         }
 
+        mediaPlayer = MediaPlayer().apply {
+            setOnPreparedListener { start() }
+            setOnErrorListener { mp, what, extra ->
+                println("MediaPlayer error: what=$what, extra=$extra")
+                mp.reset()
+                false
+            }
+            try {
+                setDataSource(youtubeVideoUri?.toString() ?: defaultAlarmUri.toString())
+                prepareAsync()
+            } catch (e: Exception) {
+                println("Error setting data source: ${e.message}")
+                ringtoneName = defaultRingtoneName
+                setDataSource(defaultAlarmUri.toString())
+                prepareAsync()
+            }
+        }
+
+        startNotificationService(ringtoneName)
     }
 
     private fun startNotificationService(ringtoneName: String) {
@@ -68,62 +99,18 @@ class RingtonePlayingService : Service() {
         startService(notificationIntent)
     }
 
-    private fun playRingtone(video: Video?) {
-        val context = this
-
-        serviceScope.launch(Dispatchers.IO) {
-
-            val alarmUri: Uri?
-            val ringtoneName: String
-            val videoId = video?.getId()
-
-            if (videoId == null) {
-                alarmUri = RingtoneManager
-                    .getDefaultUri(RingtoneManager.TYPE_ALARM)
-                ringtoneName = "default ringtone"
-            } else {
-                alarmUri = extractAudio(
-                    "https://youtu.be/" + video.getId()
-                )
-                ringtoneName = video.getTitle()
-            }
-
-            ringtone = RingtoneManager.getRingtone(context, alarmUri)
-            ringtone!!.play()
-            startNotificationService(ringtoneName)
-        }
-
-    }
-
-    private fun extractAudio(videoURL: String): Uri {
-        val request = YoutubeDLRequest(videoURL)
-        request.addOption("--extract-audio")
-        val streamInfo: VideoInfo
-        try {
-            streamInfo = YoutubeDL.getInstance().getInfo(request)
-        } catch (e: YoutubeDLException) {
-            throw RuntimeException(e)
-        } catch (e: InterruptedException) {
-            throw RuntimeException(e)
-        } catch (e: YoutubeDL.CanceledException) {
-            throw RuntimeException(e)
-        }
-        return Uri.parse(streamInfo.url)
-    }
-
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
 
-
     override fun onDestroy() {
         super.onDestroy()
-        println("Stop ringtone")
-        shutUpRingtone()
+        serviceScope.cancel()
+        mediaPlayer?.apply {
+            println("Stop ringtone")
+            stop()
+            release()
+        }
     }
 
-    private fun shutUpRingtone() {
-        if (ringtone != null) ringtone!!.stop()
-        ringtone = null
-    }
 }

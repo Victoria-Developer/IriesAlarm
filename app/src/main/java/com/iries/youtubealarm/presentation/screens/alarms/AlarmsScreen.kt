@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iries.youtubealarm.data.entity.AlarmInfo
-import com.iries.youtubealarm.domain.AlarmManager
 import com.iries.youtubealarm.presentation.common.AlarmItem
 import com.iries.youtubealarm.presentation.common.DatePicker
 
@@ -74,8 +73,13 @@ fun AlarmsScreen(onNavigateToYouTubeScreen: () -> Unit) {
                 if (showDialog) DatePicker(
                     onCloseDialog = { showDialog = false },
                     onConfirm = {
-                        if (alarmsList.value.contains(it))
+                        if (alarmsList.value.contains(it)) {
+                            if(it.isActive()) {
+                                viewModel.cancelAlarms(context, it.getDaysId())
+                                viewModel.activateAlarm(context, it)
+                            }
                             viewModel.updateAlarm(it)
+                        }
                         else {
                             viewModel.activateAlarm(context, it)
                             viewModel.addAlarm(it)
@@ -101,7 +105,6 @@ fun AlarmsScreen(onNavigateToYouTubeScreen: () -> Unit) {
                                     viewModel.activateAlarm(context, alarm)
                                 } else {
                                     println("Stop alarm alarm")
-                                    AlarmManager.stopCurrentAlarm(context)
                                     viewModel.cancelAlarms(context, alarm.getDaysId())
                                 }
                                 alarm.setActive(it)

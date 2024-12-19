@@ -9,14 +9,12 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.IBinder
-import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import android.app.Service
-import com.iries.youtubealarm.presentation.activities.MainActivity
+import com.iries.youtubealarm.presentation.MainActivity
 import com.iries.youtubealarm.R
-import com.iries.youtubealarm.presentation.activities.TriggeredAlarmActivity
 import com.iries.youtubealarm.domain.constants.Extra
 
 class NotificationService : Service() {
@@ -26,18 +24,7 @@ class NotificationService : Service() {
         val ringtoneName = intent
             .getStringExtra(Extra.RINGTONE_NAME_EXTRA.extraName)
 
-        /*if (Settings.canDrawOverlays(this)) {
-            println("cal draw overlay")
-            val fullScreenIntent = Intent(
-                this,
-                TriggeredAlarmActivity::class.java
-            )
-            fullScreenIntent
-                .putExtra(ringtoneName, ringtoneName)
-            fullScreenIntent
-                .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(fullScreenIntent)
-        } else*/ createNotification(ringtoneName)
+        createNotification(ringtoneName)
 
         return super.onStartCommand(intent, flags, startId)
     }

@@ -1,7 +1,7 @@
 [versions]
 agp = "8.7.3"
 coilCompose = "2.7.0"
-ffmpeg = "0.15.0"
+ffmpegVersion = "0.17.2"
 firebaseAuth = "23.0.0"
 firebaseBom = "33.3.0"
 googleApiClientAndroid = "2.2.0"
@@ -20,7 +20,7 @@ ktorClientCio = "3.0.2"
 ktorClientContentNegotiation = "3.0.2"
 ktorClientCore = "3.0.2"
 ktorSerializationKotlinxJson = "3.0.2"
-library = "0.15.0"
+libraryVersion = "0.17.2"
 lifecycleRuntimeKtx = "2.8.6"
 activityCompose = "1.9.2"
 composeBom = "2024.09.02"
@@ -28,7 +28,6 @@ playServicesAuth = "21.2.0"
 preferenceKtx = "1.2.1"
 roomRuntime = "2.6.1"
 navigationCompose = "2.8.1"
-runtimeLivedata = "1.7.2"
 secretsGradlePlugin = "2.0.1"
 wheelpickercompose = "1.1.11"
 
@@ -39,9 +38,7 @@ androidx-preference-ktx = { module = "androidx.preference:preference-ktx", versi
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
-androidx-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "runtimeLivedata" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
-ffmpeg = { module = "com.github.yausername.youtubedl-android:ffmpeg", version.ref = "ffmpeg" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-auth = { module = "com.google.firebase:firebase-auth", version.ref = "firebaseAuth" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
@@ -71,10 +68,11 @@ ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorClien
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorClientContentNegotiation" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorClientCore" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
-library = { module = "com.github.yausername.youtubedl-android:library", version.ref = "library" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 secrets-gradle-plugin = { module = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin", version.ref = "secretsGradlePlugin" }
 wheelpickercompose = { module = "com.github.commandiron:WheelPickerCompose", version.ref = "wheelpickercompose" }
+youtubedl-android-ffmpeg = { module = "io.github.junkfood02.youtubedl-android:ffmpeg", version.ref = "ffmpegVersion" }
+youtubedl-android-library = { module = "io.github.junkfood02.youtubedl-android:library", version.ref = "libraryVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
