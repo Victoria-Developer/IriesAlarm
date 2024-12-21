@@ -27,10 +27,17 @@ class YouTubeViewModel @Inject constructor(
     private val _visibleChannels = MutableStateFlow<List<YTChannel>?>(arrayListOf())
     val visibleChannels: StateFlow<List<YTChannel>?> = _visibleChannels
 
+    private val _isError = MutableStateFlow(false)
+    val isError: StateFlow<Boolean> = _isError
+
+    private val _isFetchRequest = MutableStateFlow(false)
+    val isFetchRequest: StateFlow<Boolean> = _isFetchRequest
+
     init {
         viewModelScope.launch {
             channelsRepo.getAllChannels().collect { channels ->
-                _dbChannels.value = channels
+                _dbChannels.update { channels }
+                _visibleChannels.update { channels }
             }
         }
     }
@@ -49,7 +56,6 @@ class YouTubeViewModel @Inject constructor(
         ytChannel: YTChannel
     ) = viewModelScope.launch(Dispatchers.IO) {
         channelsRepo.insert(ytChannel)
-        println(dbChannels.value.size)
     }
 
     fun removeChannelFromDB(
@@ -65,16 +71,38 @@ class YouTubeViewModel @Inject constructor(
     fun showChannelsByKeyWord(
         keyWord: String
     ) = viewModelScope.launch(Dispatchers.IO) {
-        val searchResults = youtubeSearchApi.findChannelByKeyword(keyWord)
-        _visibleChannels.update { searchResults }
+        onSearch {
+            youtubeSearchApi.findChannelByKeyword(keyWord)
+        }
     }
 
     fun showSubscriptions(
         context: Context
     ) = viewModelScope.launch(Dispatchers.IO) {
-        val youTube = YoutubeAuth.getYoutube(context)
-        val subs = youtubeSearchApi.getSubscriptions(youTube)
-        _visibleChannels.update { subs }
+        onSearch {
+            val youTube = YoutubeAuth.getYoutube(context)
+            youtubeSearchApi.getSubscriptions(youTube)
+        }
+    }
+
+    private suspend fun onSearch(
+        channelsFetchMethod: suspend () -> List<YTChannel>?
+    ) {
+        _isFetchRequest.update { true }
+
+        val channels = try {
+            channelsFetchMethod()
+        } catch (e: Exception) {
+            _isError.update { true }
+            null
+        }
+
+        _visibleChannels.update { channels }
+        _isFetchRequest.update { false }
+    }
+
+    fun updateError(isError: Boolean) {
+        _isError.update { isError }
     }
 
 }

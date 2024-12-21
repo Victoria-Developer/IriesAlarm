@@ -17,6 +17,7 @@ import com.yausername.youtubedl_android.YoutubeDLRequest
 import com.yausername.youtubedl_android.mapper.VideoInfo
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
@@ -24,6 +25,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import java.io.IOException
 import javax.inject.Inject
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 class YoutubeSearchApi @Inject constructor(private val httpClient: HttpClient) {
 
@@ -62,8 +65,9 @@ class YoutubeSearchApi @Inject constructor(private val httpClient: HttpClient) {
     }
 
     suspend fun findChannelByKeyword(keyword: String): List<YTChannel>? {
+        val encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8.toString())
         val url = "https://www.googleapis.com/youtube/v3/search?" +
-                "part=snippet&maxResults=20&q=$keyword&type=channel" +
+                "part=snippet&maxResults=20&q=$encodedKeyword&type=channel" +
                 "&key=${BuildConfig.youtube_api_key}"
 
         try {
@@ -106,16 +110,20 @@ class YoutubeSearchApi @Inject constructor(private val httpClient: HttpClient) {
     }
 
     suspend fun findVideoByFilters(
-        channelId: String?,
+        channelId: String,
         order: Order, duration: Duration
     ): List<Video>? {
-        val url = "https://www.googleapis.com/youtube/v3/search?" +
-                "channelId=$channelId&part=snippet&maxResults=5&" +
-                "order=$order&duration=$duration&type=videos" +
-                "&key=${BuildConfig.youtube_api_key}"
+        val url = "https://www.googleapis.com/youtube/v3/search"
 
         try {
             val response: HttpResponse = httpClient.get(url) {
+                parameter("part", "snippet")
+                parameter("maxResults", 5)
+                parameter("order", order)
+                parameter("duration", duration)
+                parameter("type", "videos")
+                parameter("channelId", channelId)
+                parameter("key", BuildConfig.youtube_api_key)
                 contentType(ContentType.Application.Json)
             }
             return if (response.status == HttpStatusCode.OK)

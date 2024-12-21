@@ -13,11 +13,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,6 +50,8 @@ fun YouTubeScreen(onNavigateToAlarmsScreen: () -> Unit) {
     val context = LocalContext.current
     val viewModel: YouTubeViewModel = hiltViewModel()
     val visibleChannels = viewModel.visibleChannels.collectAsState()
+    val isError = viewModel.isError.collectAsState()
+    val isFetchRequest = viewModel.isFetchRequest.collectAsState()
 
     //log-in launcher
     val loginLauncher = rememberLauncherForActivityResult(
@@ -53,6 +62,23 @@ fun YouTubeScreen(onNavigateToAlarmsScreen: () -> Unit) {
         else Toast.makeText(
             context, "Login failed. Please, try again", Toast.LENGTH_SHORT
         ).show()
+    }
+
+    if (isError.value) {
+        AlertDialog(
+            onDismissRequest = {
+
+            },
+            confirmButton = {
+                Button(onClick = { viewModel.updateError(false) }) {
+                    Text("Confirm")
+                }
+            },
+            icon = {
+                Icon(imageVector = Icons.Default.Warning, contentDescription = "Warning Icon")
+            },
+            text = { Text("Something went wrong. Please, try again.") }
+        )
     }
 
     Scaffold(
@@ -90,7 +116,17 @@ fun YouTubeScreen(onNavigateToAlarmsScreen: () -> Unit) {
                     }
                 }
 
-                if (!visibleChannels.value.isNullOrEmpty())
+                if (!isError.value && isFetchRequest.value) {
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .width(64.dp)
+                                .align(Alignment.Center),
+                            color = MaterialTheme.colorScheme.secondary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    }
+                } else if (!visibleChannels.value.isNullOrEmpty())
                     LazyColumn {
                         items(visibleChannels.value!!.toList()) {
                             Row {
