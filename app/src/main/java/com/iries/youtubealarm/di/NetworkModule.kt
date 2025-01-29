@@ -1,7 +1,7 @@
 package com.iries.youtubealarm.di
 
 
-import com.iries.youtubealarm.data.youtube.YoutubeSearchApi
+import com.iries.youtubealarm.data.network.YoutubeSearchApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -1,11 +1,22 @@
 package com.iries.youtubealarm.data.repository
 
+import android.content.Context
+import android.net.Uri
 import com.iries.youtubealarm.data.dao.ChannelsDao
 import com.iries.youtubealarm.data.entity.YTChannel
+import com.iries.youtubealarm.data.network.YoutubeAuth
+import com.iries.youtubealarm.data.network.YoutubeSearchApi
+import com.iries.youtubealarm.domain.constants.Duration
+import com.iries.youtubealarm.domain.constants.Order
+import com.iries.youtubealarm.domain.converters.NetworkConverter
+import com.iries.youtubealarm.domain.models.Video
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class ChannelsRepository @Inject constructor(private var channelsDao: ChannelsDao) {
+class ChannelsRepository @Inject constructor(
+    private var channelsDao: ChannelsDao,
+    private val youtubeSearchApi: YoutubeSearchApi
+) {
     private var allChannels: Flow<List<YTChannel>> = channelsDao.getAllChannels()
 
     fun insert(channel: YTChannel) {
@@ -32,4 +43,34 @@ class ChannelsRepository @Inject constructor(private var channelsDao: ChannelsDa
         return channelsDao.getRandomChannelId()
     }
 
+    suspend fun fetchSubscriptions(context: Context): Result<List<YTChannel>> {
+        val accessToken = YoutubeAuth.authorize(context).token
+        val result = youtubeSearchApi.getSubscriptions(accessToken)
+        return result.mapCatching { response ->
+            NetworkConverter.parseSubsResponse(response)
+        }
+    }
+
+    suspend fun fetchChannelsByName(keyWord: String): Result<List<YTChannel>> {
+        val result = youtubeSearchApi.findChannelByKeyword(keyWord)
+        return result.mapCatching { response ->
+            NetworkConverter.parseChannelsResponse(response)
+        }
+    }
+
+    suspend fun fetchVideoByFilters(
+        channelId: String,
+        order: Order, duration: Duration
+    ): Result<Video> {
+        val result = youtubeSearchApi.findVideoByFilters(channelId, order, duration)
+        return result.mapCatching { response ->
+            NetworkConverter.parseVideoResponse(response)[0]
+        }
+    }
+
+    fun videoToAudioUrl(video: Video): Result<Uri> {
+        return youtubeSearchApi.videoUrlToAudio(
+            "https://youtu.be/" + video.getId()
+        )
+    }
 }

@@ -7,11 +7,9 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.IBinder
 import com.iries.youtubealarm.data.repository.ChannelsRepository
-import com.iries.youtubealarm.data.youtube.YoutubeSearchApi
 import com.iries.youtubealarm.domain.ConfigsReader
 import com.iries.youtubealarm.domain.constants.Extra
 import com.iries.youtubealarm.domain.models.UserConfigs
-import com.iries.youtubealarm.domain.models.Video
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,15 +23,12 @@ class RingtonePlayingService : Service() {
     private var serviceScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 
     @Inject
-    lateinit var channelsRepository: ChannelsRepository
-
-    @Inject
-    lateinit var youtubeSearchApi: YoutubeSearchApi
+    lateinit var channelsRepo: ChannelsRepository
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
         serviceScope.launch(Dispatchers.IO) {
-            val channelId = channelsRepository.getRandomChannelId()
+            val channelId = channelsRepo.getRandomChannelId()
             val userConfigs = ConfigsReader(
                 this@RingtonePlayingService
             ).loadUserConfigs()
@@ -55,20 +50,15 @@ class RingtonePlayingService : Service() {
         var ringtoneName = defaultRingtoneName
 
         if (channelId != null) {
-            val video: Video? = youtubeSearchApi.findVideoByFilters(
+            channelsRepo.fetchVideoByFilters(
                 channelId,
                 userConfigs.getOrder(),
                 userConfigs.getDuration()
-            )?.firstOrNull()
-
-            val videoId = video?.getId()
-
-            if (videoId != null) {
-                println("Extracting audio from video with id $videoId")
-                youtubeVideoUri = youtubeSearchApi.extractAudio(
-                    "https://youtu.be/" + video.getId()
-                )
-                ringtoneName = video.getTitle()
+            ).onSuccess { video ->
+                channelsRepo.videoToAudioUrl(video).onSuccess {
+                    youtubeVideoUri = it
+                    ringtoneName = video.getTitle()
+                }
             }
         }
 

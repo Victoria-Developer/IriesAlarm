@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.iries.youtubealarm.data.youtube.YoutubeAuth
+import com.iries.youtubealarm.data.network.YoutubeAuth
 import com.iries.youtubealarm.presentation.common.SearchBar
 import com.iries.youtubealarm.presentation.common.Thumbnail
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +53,7 @@ fun YouTubeScreen(onNavigateToAlarmsScreen: () -> Unit) {
     val isError = viewModel.isError.collectAsState()
     val isFetchRequest = viewModel.isFetchRequest.collectAsState()
 
-    //log-in launcher
+    //Google Sign-in launcher
     val loginLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result: ActivityResult ->
@@ -88,7 +88,6 @@ fun YouTubeScreen(onNavigateToAlarmsScreen: () -> Unit) {
             ) {
                 SearchBar(
                     onSearch = {
-                        println(it)
                         viewModel.showChannelsByKeyWord(it)
                     }
                 )

@@ -14,7 +14,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
-import com.iries.youtubealarm.data.youtube.YoutubeSearchApi
 import com.iries.youtubealarm.domain.ConfigsReader
 import com.iries.youtubealarm.domain.models.UserConfigs
 import com.iries.youtubealarm.presentation.navigation.AppNavigation
@@ -23,16 +22,12 @@ import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLException
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private lateinit var configsReader: ConfigsReader
-
-    @Inject
-    lateinit var youtubeSearchApi: YoutubeSearchApi
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

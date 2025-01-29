@@ -5,8 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iries.youtubealarm.data.entity.YTChannel
 import com.iries.youtubealarm.data.repository.ChannelsRepository
-import com.iries.youtubealarm.data.youtube.YoutubeAuth
-import com.iries.youtubealarm.data.youtube.YoutubeSearchApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,8 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class YouTubeViewModel @Inject constructor(
-    private val channelsRepo: ChannelsRepository,
-    private val youtubeSearchApi: YoutubeSearchApi
+    private val channelsRepo: ChannelsRepository
 ) : ViewModel() {
 
     private val _dbChannels = MutableStateFlow<List<YTChannel>>(emptyList())
@@ -37,7 +34,9 @@ class YouTubeViewModel @Inject constructor(
         viewModelScope.launch {
             channelsRepo.getAllChannels().collect { channels ->
                 _dbChannels.update { channels }
-                _visibleChannels.update { channels }
+                if (_visibleChannels.value.isNullOrEmpty()) {
+                    _visibleChannels.update { channels }
+                }
             }
         }
     }
@@ -71,30 +70,27 @@ class YouTubeViewModel @Inject constructor(
     fun showChannelsByKeyWord(
         keyWord: String
     ) = viewModelScope.launch(Dispatchers.IO) {
-        onSearch {
-            youtubeSearchApi.findChannelByKeyword(keyWord)
-        }
+        onSearch { channelsRepo.fetchChannelsByName(keyWord) }
     }
 
     fun showSubscriptions(
         context: Context
     ) = viewModelScope.launch(Dispatchers.IO) {
-        onSearch {
-            val youTube = YoutubeAuth.getYoutube(context)
-            youtubeSearchApi.getSubscriptions(youTube)
-        }
+        onSearch { channelsRepo.fetchSubscriptions(context) }
     }
 
     private suspend fun onSearch(
-        channelsFetchMethod: suspend () -> List<YTChannel>?
+        onFetchChannels: suspend () -> Result<List<YTChannel>>
     ) {
         _isFetchRequest.update { true }
 
-        val channels = try {
-            channelsFetchMethod()
-        } catch (e: Exception) {
+        var channels: List<YTChannel>? = null
+        val result = onFetchChannels()
+        result.onSuccess {
+            channels = it
+        }
+        result.onFailure {
             _isError.update { true }
-            null
         }
 
         _visibleChannels.update { channels }

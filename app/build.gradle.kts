@@ -101,19 +101,10 @@ dependencies {
     // Fancy scrollable timePicker
     implementation (libs.wheelpickercompose)
 
-    // Firebase dependencies for sha-1
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
-    implementation(libs.firebase.auth)
-
 
     // Google Sign-In
     implementation(libs.play.services.auth)
-    // YouTube api
     implementation(libs.google.api.client.android)
-    implementation("com.google.apis:google-api-services-youtube:v3-rev20240123-2.0.0") {
-        exclude("org.apache.httpcomponents")
-    }
 
     // Json, Gson
     implementation(libs.google.http.client.gson)
