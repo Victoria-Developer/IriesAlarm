@@ -6,10 +6,8 @@ import com.iries.youtubealarm.data.dao.ChannelsDao
 import com.iries.youtubealarm.data.entity.YTChannel
 import com.iries.youtubealarm.data.network.YoutubeAuth
 import com.iries.youtubealarm.data.network.YoutubeSearchApi
-import com.iries.youtubealarm.domain.constants.Duration
-import com.iries.youtubealarm.domain.constants.Order
 import com.iries.youtubealarm.domain.converters.NetworkConverter
-import com.iries.youtubealarm.domain.models.Video
+import com.iries.youtubealarm.data.entity.Video
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -39,8 +37,15 @@ class ChannelsRepository @Inject constructor(
         return allChannels
     }
 
-    fun getRandomChannelId(): String? {
-        return channelsDao.getRandomChannelId()
+    fun getRandomChannelUploadsId(): String? {
+        return channelsDao.getRandomChannelUploadsId()
+    }
+
+    suspend fun getUploadsPlaylistId(channelId:String): Result<String> {
+        val result = youtubeSearchApi.getUploadsId(channelId)
+        return result.mapCatching { response ->
+            NetworkConverter.parseUploadsPlaylistResponse(response)
+        }
     }
 
     suspend fun fetchSubscriptions(context: Context): Result<List<YTChannel>> {
@@ -58,13 +63,12 @@ class ChannelsRepository @Inject constructor(
         }
     }
 
-    suspend fun fetchVideoByFilters(
-        channelId: String,
-        order: Order, duration: Duration
-    ): Result<Video> {
-        val result = youtubeSearchApi.findVideoByFilters(channelId, order, duration)
+    suspend fun fetchVideos(
+        playlistId: String
+    ): Result<List<Video>> {
+        val result = youtubeSearchApi.getPlaylistItems(playlistId)
         return result.mapCatching { response ->
-            NetworkConverter.parseVideoResponse(response)[0]
+            NetworkConverter.parsePlaylistItemResponse(response)
         }
     }
 

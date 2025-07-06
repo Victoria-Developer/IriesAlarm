@@ -19,7 +19,7 @@ class YouTubeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _dbChannels = MutableStateFlow<List<YTChannel>>(emptyList())
-    private val dbChannels: StateFlow<List<YTChannel>> = _dbChannels
+    val dbChannels: StateFlow<List<YTChannel>> = _dbChannels
 
     private val _visibleChannels = MutableStateFlow<List<YTChannel>?>(arrayListOf())
     val visibleChannels: StateFlow<List<YTChannel>?> = _visibleChannels
@@ -41,12 +41,6 @@ class YouTubeViewModel @Inject constructor(
         }
     }
 
-    fun getDBChannelById(channelId: String?): YTChannel? {
-        return dbChannels.value.firstOrNull { dbChannel ->
-            dbChannel.getChannelId() == channelId
-        } // Channel in db with the same channelId as in the search result
-    }
-
     fun isDBEmpty(): Boolean {
         return dbChannels.value.isEmpty()
     }
@@ -54,6 +48,11 @@ class YouTubeViewModel @Inject constructor(
     fun addChannelToDB(
         ytChannel: YTChannel
     ) = viewModelScope.launch(Dispatchers.IO) {
+        if (ytChannel.getUploadsId().isNullOrEmpty())
+            ytChannel.getChannelId()?.let {
+                channelsRepo.getUploadsPlaylistId(it)
+                    .onSuccess { uploadsId -> ytChannel.setUploadsId(uploadsId) }
+            }
         channelsRepo.insert(ytChannel)
     }
 

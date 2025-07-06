@@ -29,8 +29,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -50,6 +48,7 @@ fun YouTubeScreen(onNavigateToAlarmsScreen: () -> Unit) {
     val context = LocalContext.current
     val viewModel: YouTubeViewModel = hiltViewModel()
     val visibleChannels = viewModel.visibleChannels.collectAsState()
+    val dbChannels = viewModel.dbChannels.collectAsState()
     val isError = viewModel.isError.collectAsState()
     val isFetchRequest = viewModel.isFetchRequest.collectAsState()
 
@@ -127,24 +126,22 @@ fun YouTubeScreen(onNavigateToAlarmsScreen: () -> Unit) {
                     }
                 } else if (!visibleChannels.value.isNullOrEmpty())
                     LazyColumn {
-                        items(visibleChannels.value!!.toList()) {
+                        items(visibleChannels.value!!.toList()) { visibleChannel ->
                             Row {
-                                val visibleChannel = it
-                                val dbMatch = viewModel.getDBChannelById(
-                                    visibleChannel.getChannelId()
-                                )
-                                val isChecked = remember(dbMatch != null) {
-                                    mutableStateOf(dbMatch != null)
+
+                                // Channel in db with the same channelId as in the search result
+                                val dbMatch = dbChannels.value.firstOrNull { dbChannel ->
+                                    dbChannel.getChannelId() == visibleChannel.getChannelId()
                                 }
 
                                 Checkbox(
-                                    checked = isChecked.value,
+                                    checked = dbMatch != null,
                                     onCheckedChange = {
-                                        if (it)
+                                        if (it) {
                                             viewModel.addChannelToDB(visibleChannel)
-                                        else
-                                            viewModel.removeChannelFromDB(dbMatch!!)
-                                        isChecked.value = it
+                                        } else {
+                                            dbMatch?.let { it1 -> viewModel.removeChannelFromDB(it1) }
+                                        }
                                     }
                                 )
 

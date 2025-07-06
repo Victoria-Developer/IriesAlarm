@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.iries.youtubealarm.data.entity.AlarmInfo
 import com.iries.youtubealarm.data.repository.AlarmsRepository
 import com.iries.youtubealarm.domain.AlarmManager
-import com.iries.youtubealarm.domain.constants.DayOfWeek
+import com.iries.youtubealarm.domain.constants.Day
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,7 +63,7 @@ class AlarmsViewModel @Inject constructor(
 
     fun cancelAlarms(
         context: Context,
-        daysId: HashMap<DayOfWeek, Int>
+        daysId: HashMap<Day, Int>
     ) {
         AlarmManager.stopCurrentAlarm(context)
         daysId.keys.forEach {

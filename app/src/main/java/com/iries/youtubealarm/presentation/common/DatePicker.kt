@@ -19,7 +19,7 @@ import androidx.compose.ui.window.Dialog
 import com.commandiron.wheel_picker_compose.WheelTimePicker
 import com.commandiron.wheel_picker_compose.core.TimeFormat
 import com.iries.youtubealarm.data.entity.AlarmInfo
-import com.iries.youtubealarm.domain.constants.DayOfWeek
+import com.iries.youtubealarm.domain.constants.Day
 
 @Composable
 fun DatePicker(
@@ -49,7 +49,7 @@ fun DatePicker(
                 verticalArrangement = Arrangement.spacedBy(20.dp),
                 modifier = Modifier.padding(0.dp, 20.dp)
             ) {
-                items(DayOfWeek.entries.toList()) { dayOfWeek ->
+                items(Day.entries.toList()) { dayOfWeek ->
                     ClickableText(
                         dayOfWeek.name,
                         days.contains(dayOfWeek)

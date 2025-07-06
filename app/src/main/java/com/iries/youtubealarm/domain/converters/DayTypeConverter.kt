@@ -3,17 +3,17 @@ package com.iries.youtubealarm.domain.converters
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.iries.youtubealarm.domain.constants.DayOfWeek
+import com.iries.youtubealarm.domain.constants.Day
 
-class MapTypeConverter {
+class DayTypeConverter {
     @TypeConverter
-    fun stringToMap(json: String?): HashMap<DayOfWeek, Int> {
+    fun stringToMap(json: String?): HashMap<Day, Int> {
         return Gson().fromJson(json,
-            object : TypeToken<HashMap<DayOfWeek, Int>>() {})
+            object : TypeToken<HashMap<Day, Int>>() {})
     }
 
     @TypeConverter
-    fun mapToString(daysId: HashMap<DayOfWeek, Int>): String {
+    fun mapToString(daysId: HashMap<Day, Int>): String {
         return Gson().toJson(daysId)
     }
 }

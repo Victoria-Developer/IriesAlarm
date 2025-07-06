@@ -17,10 +17,8 @@ class AlarmReceiver : BroadcastReceiver() {
         if (isRepeating) {
             val timeInMillis = intent.getLongExtra(Extra.ALARM_TIME.extraName, 0)
             val alarmId = intent.getIntExtra(Extra.ALARM_ID.extraName, 0)
-            AlarmManager.setAlarm(
-                context, timeInMillis +
-                        INTERVAL_DAY * 7, alarmId, true
-            )
+            AlarmManager.setAlarm(context,
+                timeInMillis + INTERVAL_DAY * 7, alarmId, true)
         }
 
         val startIntent = Intent(

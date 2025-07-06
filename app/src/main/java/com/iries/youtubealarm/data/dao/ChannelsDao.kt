@@ -29,6 +29,6 @@ interface ChannelsDao {
     fun getChannelsCount(): Int
 
     //@Query("SELECT channelId FROM CHANNELS WHERE id = :dbId")
-    @Query("SELECT channelId FROM CHANNELS ORDER BY RANDOM() LIMIT 1")
-    fun getRandomChannelId(): String?
+    @Query("SELECT uploadsId FROM CHANNELS ORDER BY RANDOM() LIMIT 1")
+    fun getRandomChannelUploadsId(): String?
 }

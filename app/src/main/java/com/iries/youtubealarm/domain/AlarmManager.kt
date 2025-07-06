@@ -5,7 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import com.iries.youtubealarm.data.entity.AlarmInfo
-import com.iries.youtubealarm.domain.constants.DayOfWeek
+import com.iries.youtubealarm.domain.constants.Day
 import com.iries.youtubealarm.domain.constants.Extra
 import com.iries.youtubealarm.presentation.receivers.AlarmReceiver
 import com.iries.youtubealarm.presentation.services.RingtonePlayingService
@@ -15,9 +15,8 @@ object AlarmManager {
 
     fun setRepeatingAlarm(
         context: Context,
-        alarm: AlarmInfo, day: DayOfWeek
+        alarm: AlarmInfo, day: Day
     ) {
-
         val hour: Int = alarm.getHour()
         val minute: Int = alarm.getMinute()
         val chosenDay: Int = day.getId()
@@ -29,6 +28,8 @@ object AlarmManager {
         alarmCalendar[Calendar.HOUR_OF_DAY] = hour
         alarmCalendar[Calendar.MINUTE] = minute
         alarmCalendar[Calendar.DAY_OF_WEEK] = chosenDay
+        alarmCalendar.set(Calendar.SECOND, 0)
+        alarmCalendar.set(Calendar.MILLISECOND, 0)
 
         val timeInMillis: Long
         if (alarmCalendar.before(currentCalendar)) {
@@ -44,7 +45,10 @@ object AlarmManager {
         val code = "$alarmId${chosenDay}".toInt()
         days[day] = code
 
-        setAlarm(context, timeInMillis, code, true)
+        /** As audio links are short-lived it's impossible to cache the media
+            without storing it in own server or user's storage.
+            Temporary workaround is to fire alarm itself 5 seconds earlier. **/
+        setAlarm(context, timeInMillis - 5000, code, true)
     }
 
     fun setAlarm(
@@ -67,7 +71,11 @@ object AlarmManager {
 
         val alarmManager = context
             .getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
+
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            timeInMillis, pendingIntent
+        )
     }
 
     fun stopCurrentAlarm(context: Context) {

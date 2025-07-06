@@ -3,8 +3,8 @@ package com.iries.youtubealarm.data.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
-import com.iries.youtubealarm.domain.constants.DayOfWeek
-import com.iries.youtubealarm.domain.converters.MapTypeConverter
+import com.iries.youtubealarm.domain.constants.Day
+import com.iries.youtubealarm.domain.converters.DayTypeConverter
 import java.util.Locale
 
 @Entity(tableName = "ALARMS")
@@ -16,8 +16,8 @@ class AlarmInfo {
     private var hour: Int = 0
     private var minute: Int = 0
 
-    @TypeConverters(MapTypeConverter::class)
-    private var daysId: HashMap<DayOfWeek, Int> = HashMap(7)
+    @TypeConverters(DayTypeConverter::class)
+    private var daysId: HashMap<Day, Int> = HashMap(7)
 
     fun setTime(hour: Int, minute: Int) {
         this.hour = hour
@@ -60,11 +60,11 @@ class AlarmInfo {
         return isActive
     }
 
-    fun setDaysId(daysId: HashMap<DayOfWeek, Int>) {
+    fun setDaysId(daysId: HashMap<Day, Int>) {
         this.daysId = daysId
     }
 
-    fun getDaysId(): HashMap<DayOfWeek, Int> {
+    fun getDaysId(): HashMap<Day, Int> {
         return daysId
     }
 }

@@ -2,8 +2,6 @@ package com.iries.youtubealarm.data.network
 
 import android.net.Uri
 import com.iries.youtubealarm.BuildConfig
-import com.iries.youtubealarm.domain.constants.Duration
-import com.iries.youtubealarm.domain.constants.Order
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLException
 import com.yausername.youtubedl_android.YoutubeDLRequest
@@ -59,20 +57,32 @@ class YoutubeSearchApi @Inject constructor(private val httpClient: HttpClient) {
         }
     }
 
-    suspend fun findVideoByFilters(
-        channelId: String,
-        order: Order, duration: Duration
-    ): Result<String> {
-        val url = "https://www.googleapis.com/youtube/v3/search"
+    suspend fun getUploadsId(channelId: String): Result<String> {
+        val url = "https://www.googleapis.com/youtube/v3/channels"
+
+        try {
+            val response: HttpResponse = httpClient.get(url) {
+                parameter("part", "contentDetails")
+                parameter("id", channelId)
+                parameter("key", BuildConfig.youtube_api_key)
+                contentType(ContentType.Application.Json)
+            }
+            return if (response.status == HttpStatusCode.OK)
+                Result.success(response.bodyAsText())
+            else Result.failure(NullPointerException())
+        } catch (e: IOException) {
+            return Result.failure(e)
+        }
+    }
+
+    suspend fun getPlaylistItems(playlistId: String): Result<String> {
+        val url = "https://www.googleapis.com/youtube/v3/playlistItems"
 
         try {
             val response: HttpResponse = httpClient.get(url) {
                 parameter("part", "snippet")
                 parameter("maxResults", 5)
-                parameter("order", order)
-                parameter("duration", duration)
-                parameter("type", "videos")
-                parameter("channelId", channelId)
+                parameter("playlistId", playlistId)
                 parameter("key", BuildConfig.youtube_api_key)
                 contentType(ContentType.Application.Json)
             }

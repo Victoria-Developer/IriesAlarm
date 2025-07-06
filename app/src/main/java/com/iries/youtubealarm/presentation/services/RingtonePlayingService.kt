@@ -4,12 +4,9 @@ import android.app.Service
 import android.content.Intent
 import android.media.MediaPlayer
 import android.media.RingtoneManager
-import android.net.Uri
 import android.os.IBinder
 import com.iries.youtubealarm.data.repository.ChannelsRepository
-import com.iries.youtubealarm.domain.ConfigsReader
 import com.iries.youtubealarm.domain.constants.Extra
-import com.iries.youtubealarm.domain.models.UserConfigs
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,42 +23,30 @@ class RingtonePlayingService : Service() {
     lateinit var channelsRepo: ChannelsRepository
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-
         serviceScope.launch(Dispatchers.IO) {
-            val channelId = channelsRepo.getRandomChannelId()
-            val userConfigs = ConfigsReader(
-                this@RingtonePlayingService
-            ).loadUserConfigs()
-            startService(channelId, userConfigs)
+            var ringtoneUri = RingtoneManager
+                .getDefaultUri(RingtoneManager.TYPE_ALARM)
+            var ringtoneName = "Default ringtone"
+
+            val randomVideo = channelsRepo.getRandomChannelUploadsId()
+                ?.let { channelsRepo.fetchVideos(it).getOrNull() }
+                ?.randomOrNull()
+
+            val url = randomVideo?.let { channelsRepo.videoToAudioUrl(it).getOrNull() }
+
+            if (url != null) {
+                ringtoneUri = url
+                ringtoneName = randomVideo.getTitle() ?: "No title"
+                println("$url , name $ringtoneName")
+            }
+
+            startService(ringtoneUri = ringtoneUri.toString(), ringtoneName = ringtoneName)
         }
 
         return START_STICKY
     }
 
-    private suspend fun startService(
-        channelId: String?,
-        userConfigs: UserConfigs
-    ) {
-        var youtubeVideoUri: Uri? = null
-        val defaultAlarmUri = RingtoneManager
-            .getDefaultUri(RingtoneManager.TYPE_ALARM)
-
-        val defaultRingtoneName = "Default ringtone"
-        var ringtoneName = defaultRingtoneName
-
-        if (channelId != null) {
-            channelsRepo.fetchVideoByFilters(
-                channelId,
-                userConfigs.getOrder(),
-                userConfigs.getDuration()
-            ).onSuccess { video ->
-                channelsRepo.videoToAudioUrl(video).onSuccess {
-                    youtubeVideoUri = it
-                    ringtoneName = video.getTitle()
-                }
-            }
-        }
-
+    private fun startService(ringtoneUri: String, ringtoneName: String) {
         mediaPlayer = MediaPlayer().apply {
             setOnPreparedListener { start() }
             setOnErrorListener { mp, what, extra ->
@@ -70,13 +55,10 @@ class RingtonePlayingService : Service() {
                 false
             }
             try {
-                setDataSource(youtubeVideoUri?.toString() ?: defaultAlarmUri.toString())
+                setDataSource(ringtoneUri)
                 prepareAsync()
             } catch (e: Exception) {
                 println("Error setting data source: ${e.message}")
-                ringtoneName = defaultRingtoneName
-                setDataSource(defaultAlarmUri.toString())
-                prepareAsync()
             }
         }
 

@@ -2,7 +2,7 @@ package com.iries.youtubealarm.domain.constants
 
 import java.util.Arrays
 
-enum class DayOfWeek(private var id: Int, private var weekName: String?) {
+enum class Day(private var id: Int, private var weekName: String?) {
     SUNDAY(1, "Sunday"),
     MONDAY(2, "Monday"),
     TUESDAY(3, "Tuesday"),
@@ -19,9 +19,9 @@ enum class DayOfWeek(private var id: Int, private var weekName: String?) {
         return weekName
     }
 
-    fun getById(id: Int): DayOfWeek {
+    fun getById(id: Int): Day {
         return Arrays.stream(entries.toTypedArray())
-            .filter { day: DayOfWeek -> day.id == id }
+            .filter { day: Day -> day.id == id }
             .findFirst().get()
     }
 }
