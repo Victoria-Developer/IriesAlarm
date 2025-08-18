@@ -125,6 +125,8 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     kapt(libs.hilt.android.compiler)
 
+    implementation(libs.androidx.core.splashscreen)
+
     // Compose navigation
     implementation(libs.androidx.navigation.compose)
 
