@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,10 +21,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -43,7 +40,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun YouTubeScreen(onNavigateToAlarmsScreen: () -> Unit) {
+fun YouTubeScreen() {
 
     val context = LocalContext.current
     val viewModel: YouTubeViewModel = hiltViewModel()
@@ -80,105 +77,80 @@ fun YouTubeScreen(onNavigateToAlarmsScreen: () -> Unit) {
         )
     }
 
-    Scaffold(
-        content = { innerPadding ->
-            Column(
-                modifier = Modifier.padding(innerPadding) //0.dp, 20.dp
-            ) {
-                SearchBar(
-                    onSearch = {
-                        viewModel.showChannelsByKeyWord(it)
-                    }
-                )
 
-                Row(
-                    modifier = Modifier.padding(40.dp, 15.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Button(onClick = { viewModel.showDBChannels() }) {
-                        Text("Selected channels")
-                    }
+    Column {
+        SearchBar(
+            onSearch = {
+                viewModel.showChannelsByKeyWord(it)
+            }
+        )
 
-                    Button(
-                        onClick = {
-                            viewModel.viewModelScope.launch(Dispatchers.IO) {
-                                val signedInAccount = GoogleSignIn.getLastSignedInAccount(context)
-                                val signInIntent = YoutubeAuth.getSignInClient(context).signInIntent
+        Column(
+            modifier = Modifier
+                .padding(vertical = 20.dp)
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Button(onClick = { viewModel.showDBChannels() }) {
+                Text("Selected channels")
+            }
 
-                                if (signedInAccount != null) viewModel.showSubscriptions(context)
-                                else loginLauncher.launch(signInIntent)
-                            }
-                        }
-                    ) {
-                        Text("My subscriptions")
+            Button(
+                onClick = {
+                    viewModel.viewModelScope.launch(Dispatchers.IO) {
+                        val signedInAccount = GoogleSignIn.getLastSignedInAccount(context)
+                        val signInIntent = YoutubeAuth.getSignInClient(context).signInIntent
+
+                        if (signedInAccount != null) viewModel.showSubscriptions(context)
+                        else loginLauncher.launch(signInIntent)
                     }
                 }
-
-                if (!isError.value && isFetchRequest.value) {
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .width(64.dp)
-                                .align(Alignment.Center),
-                            color = MaterialTheme.colorScheme.secondary,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    }
-                } else if (!visibleChannels.value.isNullOrEmpty())
-                    LazyColumn {
-                        items(visibleChannels.value!!.toList()) { visibleChannel ->
-                            Row {
-
-                                // Channel in db with the same channelId as in the search result
-                                val dbMatch = dbChannels.value.firstOrNull { dbChannel ->
-                                    dbChannel.getChannelId() == visibleChannel.getChannelId()
-                                }
-
-                                Checkbox(
-                                    checked = dbMatch != null,
-                                    onCheckedChange = {
-                                        if (it) {
-                                            viewModel.addChannelToDB(visibleChannel)
-                                        } else {
-                                            dbMatch?.let { it1 -> viewModel.removeChannelFromDB(it1) }
-                                        }
-                                    }
-                                )
-
-                                Thumbnail(context, visibleChannel.getIconUrl())
-
-                                Spacer(Modifier.padding(20.dp, 0.dp))
-
-                                Text(visibleChannel.getTitle().toString())
-                            }
-                        }
-                    }
-            }
-        },
-        bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
             ) {
-                ElevatedButton(
-                    modifier = Modifier.align(Alignment.Center),
-                    onClick = {
-                        if (viewModel.isDBEmpty())
-                            Toast.makeText(
-                                context, "You didn't choose any YouTube channels. " +
-                                        "Default alarm ringtone is on.",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        onNavigateToAlarmsScreen()
-                    },
-                    content = { Text("Alarms") }
+                Text("My subscriptions")
+            }
+        }
+
+        if (!isError.value && isFetchRequest.value) {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .width(64.dp)
+                        .align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.secondary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
             }
+        } else if (!visibleChannels.value.isNullOrEmpty())
+            LazyColumn {
+                items(visibleChannels.value!!.toList()) { visibleChannel ->
+                    Row {
 
-        }
-    )
+                        // Channel in db with the same channelId as in the search result
+                        val dbMatch = dbChannels.value.firstOrNull { dbChannel ->
+                            dbChannel.getChannelId() == visibleChannel.getChannelId()
+                        }
 
+                        Checkbox(
+                            checked = dbMatch != null,
+                            onCheckedChange = {
+                                if (it) {
+                                    viewModel.addChannelToDB(visibleChannel)
+                                } else {
+                                    dbMatch?.let { it1 -> viewModel.removeChannelFromDB(it1) }
+                                }
+                            }
+                        )
+
+                        Thumbnail(context, visibleChannel.getIconUrl())
+
+                        Spacer(Modifier.padding(20.dp, 0.dp))
+
+                        Text(visibleChannel.getTitle().toString())
+                    }
+                }
+            }
+    }
 
 }
 

@@ -1,13 +1,11 @@
 package com.iries.youtubealarm.presentation.screens.alarms
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,10 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -37,7 +32,7 @@ import com.iries.youtubealarm.presentation.common.AlarmItem
 import com.iries.youtubealarm.presentation.common.DatePicker
 
 @Composable
-fun AlarmsScreen(onNavigateToYouTubeScreen: () -> Unit) {
+fun AlarmsScreen() {
 
     val context = LocalContext.current
     val viewModel: AlarmsViewModel = hiltViewModel()
@@ -45,90 +40,71 @@ fun AlarmsScreen(onNavigateToYouTubeScreen: () -> Unit) {
     val alarmsList = viewModel.allAlarms.collectAsState()
     val selectedAlarm: MutableState<AlarmInfo?> = remember { mutableStateOf(null) }
 
-    Scaffold(
-        content = { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
 
-                Button(
-                    onClick = { showDialog = true },
-                    modifier = Modifier
-                        .size(60.dp),
-                    shape = CircleShape,
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = "Add alarm"
-                    )
-                }
+        Button(
+            onClick = { showDialog = true },
+            modifier = Modifier
+                .size(60.dp),
+            shape = CircleShape,
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            Icon(
+                Icons.Default.Add,
+                contentDescription = "Add alarm"
+            )
+        }
 
-                Spacer(Modifier.padding(0.dp, 20.dp))
+        Spacer(Modifier.padding(0.dp, 20.dp))
 
-                if (showDialog) DatePicker(
-                    onCloseDialog = { showDialog = false },
-                    onConfirm = {
-                        if (alarmsList.value.contains(it)) {
-                            if(it.isActive()) {
-                                viewModel.cancelAlarms(context, it.getDaysId())
-                                viewModel.activateAlarm(context, it)
-                            }
-                            viewModel.updateAlarm(it)
-                        }
-                        else {
-                            viewModel.activateAlarm(context, it)
-                            viewModel.addAlarm(it)
-                        }
-                    },
-                    alarm = selectedAlarm.value
-                )
-
-                LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                    items(alarmsList.value.toList()) { alarm ->
-                        AlarmItem(
-                            alarm = alarm,
-                            onRemoveAlarm = {
-                                viewModel.removeAlarm(context, alarm)
-                            },
-                            onEditAlarm = {
-                                selectedAlarm.value = alarm
-                                showDialog = true
-                            },
-                            onSwitchAlarm = {
-                                if (it) {
-                                    println("Set repeating alarm")
-                                    viewModel.activateAlarm(context, alarm)
-                                } else {
-                                    println("Stop alarm alarm")
-                                    viewModel.cancelAlarms(context, alarm.getDaysId())
-                                }
-                                alarm.setActive(it)
-                                viewModel.updateAlarm(alarm)
-                            }
-                        )
+        if (showDialog) DatePicker(
+            onCloseDialog = { showDialog = false },
+            onConfirm = {
+                if (alarmsList.value.contains(it)) {
+                    if (it.isActive()) {
+                        viewModel.cancelAlarms(context, it.getDaysId())
+                        viewModel.activateAlarm(context, it)
                     }
+                    viewModel.updateAlarm(it)
+                } else {
+                    viewModel.activateAlarm(context, it)
+                    viewModel.addAlarm(it)
                 }
-            }
-        },
-        bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-            ) {
-                ElevatedButton(
-                    modifier = Modifier.align(Alignment.Center),
-                    onClick = onNavigateToYouTubeScreen,
-                    content = { Text("YouTube search") }
+            },
+            alarm = selectedAlarm.value
+        )
+
+        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            items(alarmsList.value.toList()) { alarm ->
+                AlarmItem(
+                    alarm = alarm,
+                    onRemoveAlarm = {
+                        viewModel.removeAlarm(context, alarm)
+                    },
+                    onEditAlarm = {
+                        selectedAlarm.value = alarm
+                        showDialog = true
+                    },
+                    onSwitchAlarm = {
+                        if (it) {
+                            println("Set repeating alarm")
+                            viewModel.activateAlarm(context, alarm)
+                        } else {
+                            println("Stop alarm alarm")
+                            viewModel.cancelAlarms(context, alarm.getDaysId())
+                        }
+                        alarm.setActive(it)
+                        viewModel.updateAlarm(alarm)
+                    }
                 )
             }
         }
-    )
+    }
 
 }
 

@@ -18,7 +18,6 @@
         android:name=".AlarmApp"
         android:usesCleartextTraffic="true"
         android:enableOnBackInvokedCallback="true"
-        android:extractNativeLibs="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
