@@ -65,7 +65,7 @@ class AlarmsViewModel @Inject constructor(
         context: Context,
         daysId: HashMap<Day, Int>
     ) {
-        AlarmManager.stopCurrentAlarm(context)
+        //AlarmManager.stopCurrentAlarm(context)
         daysId.keys.forEach {
             AlarmManager.cancelIntent(it.getId(), context)
         }

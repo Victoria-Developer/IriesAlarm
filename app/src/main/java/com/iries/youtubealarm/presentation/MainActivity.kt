@@ -2,12 +2,11 @@ package com.iries.youtubealarm.presentation
 
 import android.Manifest
 import android.app.NotificationManager
-import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -19,9 +18,6 @@ import com.iries.youtubealarm.domain.ConfigsReader
 import com.iries.youtubealarm.domain.models.UserConfigs
 import com.iries.youtubealarm.presentation.navigation.AppNavigation
 import com.iries.youtubealarm.presentation.theme.IriesAlarmTheme
-import com.yausername.ffmpeg.FFmpeg
-import com.yausername.youtubedl_android.YoutubeDL
-import com.yausername.youtubedl_android.YoutubeDLException
 import dagger.hilt.android.AndroidEntryPoint
 
 
@@ -33,13 +29,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-
-        try {
-            YoutubeDL.getInstance().init(applicationContext)
-            FFmpeg.getInstance().init(this)
-        } catch (e: YoutubeDLException) {
-            Log.e(TAG, "failed to initialize youtubedl-android", e)
-        }
 
         configsReader = ConfigsReader(this)
         val configs = configsReader.loadUserConfigs()
@@ -66,37 +55,32 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkPermissions() {
-        if (ContextCompat.checkSelfPermission(
-                applicationContext,
-                Manifest.permission.SYSTEM_ALERT_WINDOW
-            )
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            if (!Settings.canDrawOverlays(this))
-                requestOverlayPermission()
+        // 1. Overlay permission
+        if (!Settings.canDrawOverlays(this)) {
+            requestOverlayPermission()
         }
 
-        if (ContextCompat.checkSelfPermission(
-                applicationContext,
-                Manifest.permission.POST_NOTIFICATIONS
-            )
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            val notificationManager: NotificationManager = getSystemService(
-                NotificationManager::class.java
-            )
-            val areNotificationsEnabled: Boolean = notificationManager.areNotificationsEnabled()
-            if (!areNotificationsEnabled)
-                requestNotificationsPermission()
+        // 2. Notifications
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Runtime permission (API 33+)
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
+            }
+        } else {
+            // API 31–32: no runtime request, only check if master switch is off
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            if (!notificationManager.areNotificationsEnabled()) {
+                // Open app notification settings screen
+                startActivity(
+                    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                        .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                )
+            }
         }
-    }
-
-    private fun requestNotificationsPermission() {
-        startActivity(
-            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        )
     }
 
     private fun requestOverlayPermission() {

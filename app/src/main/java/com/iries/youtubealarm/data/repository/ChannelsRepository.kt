@@ -1,7 +1,6 @@
 package com.iries.youtubealarm.data.repository
 
 import android.content.Context
-import android.net.Uri
 import com.iries.youtubealarm.data.dao.ChannelsDao
 import com.iries.youtubealarm.data.entity.YTChannel
 import com.iries.youtubealarm.data.network.YoutubeAuth
@@ -72,9 +71,4 @@ class ChannelsRepository @Inject constructor(
         }
     }
 
-    fun videoToAudioUrl(video: Video): Result<Uri> {
-        return youtubeSearchApi.videoUrlToAudio(
-            "https://youtu.be/" + video.getId()
-        )
-    }
 }

@@ -1,11 +1,6 @@
 package com.iries.youtubealarm.data.network
 
-import android.net.Uri
 import com.iries.youtubealarm.BuildConfig
-import com.yausername.youtubedl_android.YoutubeDL
-import com.yausername.youtubedl_android.YoutubeDLException
-import com.yausername.youtubedl_android.YoutubeDLRequest
-import com.yausername.youtubedl_android.mapper.VideoInfo
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
@@ -15,9 +10,9 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import java.io.IOException
-import javax.inject.Inject
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import javax.inject.Inject
 
 class YoutubeSearchApi @Inject constructor(private val httpClient: HttpClient) {
 
@@ -92,23 +87,6 @@ class YoutubeSearchApi @Inject constructor(private val httpClient: HttpClient) {
         } catch (e: IOException) {
             return Result.failure(e)
         }
-    }
-
-    fun videoUrlToAudio(videoURL: String): Result<Uri> {
-        val request = YoutubeDLRequest(videoURL)
-        request.addOption("--extract-audio")
-        val streamInfo: VideoInfo
-        try {
-            streamInfo = YoutubeDL.getInstance().getInfo(request)
-            return Result.success(Uri.parse(streamInfo.url))
-        } catch (e: YoutubeDLException) {
-            return Result.failure(e)
-        } catch (e: InterruptedException) {
-            return Result.failure(e)
-        } catch (e: YoutubeDL.CanceledException) {
-            return Result.failure(e)
-        }
-
     }
 
 }
