@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "com.iries.youtubealarm"
-        minSdk = 29
+        minSdk = 31
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -112,8 +112,8 @@ dependencies {
     implementation(libs.gson)
 
     // mp3 converter
-    implementation(libs.youtubedl.android.library)
-    implementation(libs.youtubedl.android.ffmpeg)
+    //implementation(libs.youtubedl.android.library)
+    //implementation(libs.youtubedl.android.ffmpeg)
 
     // Room
     implementation(libs.androidx.room.runtime)

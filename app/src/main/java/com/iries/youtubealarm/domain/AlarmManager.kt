@@ -8,7 +8,6 @@ import com.iries.youtubealarm.data.entity.AlarmInfo
 import com.iries.youtubealarm.domain.constants.Day
 import com.iries.youtubealarm.domain.constants.Extra
 import com.iries.youtubealarm.presentation.receivers.AlarmReceiver
-import com.iries.youtubealarm.presentation.services.RingtonePlayingService
 import java.util.Calendar
 
 object AlarmManager {
@@ -44,11 +43,7 @@ object AlarmManager {
         val alarmId: Long = alarm.getAlarmId()
         val code = "$alarmId${chosenDay}".toInt()
         days[day] = code
-
-        /** As audio links are short-lived it's impossible to cache the media
-            without storing it in own server or user's storage.
-            Temporary workaround is to fire alarm itself 5 seconds earlier. **/
-        setAlarm(context, timeInMillis - 5000, code, true)
+        setAlarm(context, timeInMillis, code, true)
     }
 
     fun setAlarm(
@@ -78,10 +73,10 @@ object AlarmManager {
         )
     }
 
-    fun stopCurrentAlarm(context: Context) {
-        val stopIntent = Intent(context, RingtonePlayingService::class.java)
+    /*fun stopCurrentAlarm(context: Context) {
+        val stopIntent = Intent(context, RingtoneSearchService::class.java)
         context.stopService(stopIntent)
-    }
+    }*/
 
     fun cancelIntent(intentId: Int, context: Context) {
         val flags = PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
