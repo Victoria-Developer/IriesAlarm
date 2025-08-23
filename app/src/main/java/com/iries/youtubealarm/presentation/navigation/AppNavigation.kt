@@ -27,7 +27,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.iries.youtubealarm.R
 import com.iries.youtubealarm.presentation.screens.alarms.AlarmsScreen
-import com.iries.youtubealarm.presentation.screens.youtube.YouTubeScreen
+import com.iries.youtubealarm.presentation.screens.music.YouTubeScreen
 
 @Composable
 fun AppNavigation(

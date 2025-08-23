@@ -18,16 +18,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.commandiron.wheel_picker_compose.WheelTimePicker
 import com.commandiron.wheel_picker_compose.core.TimeFormat
-import com.iries.youtubealarm.data.entity.AlarmInfo
+import com.iries.youtubealarm.data.entity.AlarmEntity
 import com.iries.youtubealarm.domain.constants.Day
 
 @Composable
 fun DatePicker(
     onCloseDialog: () -> Unit,
-    onConfirm: (alarm: AlarmInfo) -> Unit,
-    alarm: AlarmInfo?
+    onConfirm: (alarm: AlarmEntity) -> Unit,
+    alarm: AlarmEntity?
 ) {
-    val newAlarm = alarm ?: AlarmInfo()
+    val newAlarm = alarm ?: AlarmEntity()
     val days = newAlarm.getDaysId()
 
     Dialog(onDismissRequest = onCloseDialog) {

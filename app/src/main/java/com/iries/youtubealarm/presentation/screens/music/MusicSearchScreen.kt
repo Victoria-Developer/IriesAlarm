@@ -1,10 +1,5 @@
-package com.iries.youtubealarm.presentation.screens.youtube
+package com.iries.youtubealarm.presentation.screens.music
 
-import android.app.Activity
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -31,34 +25,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewModelScope
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.iries.youtubealarm.data.network.YoutubeAuth
 import com.iries.youtubealarm.presentation.common.SearchBar
 import com.iries.youtubealarm.presentation.common.Thumbnail
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import androidx.compose.foundation.lazy.items
 
 @Composable
 fun YouTubeScreen() {
 
     val context = LocalContext.current
-    val viewModel: YouTubeViewModel = hiltViewModel()
-    val visibleChannels = viewModel.visibleChannels.collectAsState()
-    val dbChannels = viewModel.dbChannels.collectAsState()
+    val viewModel: MusicSearchViewModel = hiltViewModel()
+    val currentArtists = viewModel.visibleArtists.collectAsState()
+    val savedArtists = viewModel.dbArtists.collectAsState()
     val isError = viewModel.isError.collectAsState()
     val isFetchRequest = viewModel.isFetchRequest.collectAsState()
-
-    //Google Sign-in launcher
-    val loginLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result: ActivityResult ->
-        if (result.resultCode == Activity.RESULT_OK)
-            viewModel.showSubscriptions(context)
-        else Toast.makeText(
-            context, "Login failed. Please, try again", Toast.LENGTH_SHORT
-        ).show()
-    }
 
     if (isError.value) {
         AlertDialog(
@@ -77,13 +56,8 @@ fun YouTubeScreen() {
         )
     }
 
-
     Column {
-        SearchBar(
-            onSearch = {
-                viewModel.showChannelsByKeyWord(it)
-            }
-        )
+        SearchBar(onSearch = { name-> viewModel.showArtistsByName(name) })
 
         Column(
             modifier = Modifier
@@ -92,22 +66,8 @@ fun YouTubeScreen() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(onClick = { viewModel.showDBChannels() }) {
-                Text("Selected channels")
-            }
-
-            Button(
-                onClick = {
-                    viewModel.viewModelScope.launch(Dispatchers.IO) {
-                        val signedInAccount = GoogleSignIn.getLastSignedInAccount(context)
-                        val signInIntent = YoutubeAuth.getSignInClient(context).signInIntent
-
-                        if (signedInAccount != null) viewModel.showSubscriptions(context)
-                        else loginLauncher.launch(signInIntent)
-                    }
-                }
-            ) {
-                Text("My subscriptions")
+            Button(onClick = { viewModel.showSavedArtists() }) {
+                Text("Saved artists")
             }
         }
 
@@ -121,36 +81,35 @@ fun YouTubeScreen() {
                     trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
             }
-        } else if (!visibleChannels.value.isNullOrEmpty())
+        } else if (!currentArtists.value.isNullOrEmpty())
             LazyColumn {
-                items(visibleChannels.value!!.toList()) { visibleChannel ->
+                items(currentArtists.value!!.toList()) { visibleArtists ->
                     Row {
 
-                        // Channel in db with the same channelId as in the search result
-                        val dbMatch = dbChannels.value.firstOrNull { dbChannel ->
-                            dbChannel.getChannelId() == visibleChannel.getChannelId()
+                        // Saved artist with the same id as the search result
+                        val idMatch = savedArtists.value.firstOrNull { artist ->
+                            artist.id == visibleArtists.id
                         }
 
                         Checkbox(
-                            checked = dbMatch != null,
-                            onCheckedChange = {
-                                if (it) {
-                                    viewModel.addChannelToDB(visibleChannel)
+                            checked = idMatch != null,
+                            onCheckedChange = { isChecked->
+                                if (isChecked) {
+                                    viewModel.saveArtist(visibleArtists)
                                 } else {
-                                    dbMatch?.let { it1 -> viewModel.removeChannelFromDB(it1) }
+                                    idMatch?.let { artist -> viewModel.removeArtist(artist) }
                                 }
                             }
                         )
 
-                        Thumbnail(context, visibleChannel.getIconUrl())
+                        Thumbnail(context, visibleArtists.imgUrl)
 
                         Spacer(Modifier.padding(20.dp, 0.dp))
 
-                        Text(visibleChannel.getTitle().toString())
+                        Text(visibleArtists.username)
                     }
                 }
             }
     }
 
 }
-

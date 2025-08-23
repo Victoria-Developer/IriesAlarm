@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.iries.youtubealarm.data.entity.AlarmInfo
+import com.iries.youtubealarm.data.entity.AlarmEntity
 import com.iries.youtubealarm.presentation.common.AlarmItem
 import com.iries.youtubealarm.presentation.common.DatePicker
 
@@ -38,7 +38,7 @@ fun AlarmsScreen() {
     val viewModel: AlarmsViewModel = hiltViewModel()
     var showDialog by remember { mutableStateOf(false) }
     val alarmsList = viewModel.allAlarms.collectAsState()
-    val selectedAlarm: MutableState<AlarmInfo?> = remember { mutableStateOf(null) }
+    val selectedAlarm: MutableState<AlarmEntity?> = remember { mutableStateOf(null) }
 
     Column(
         modifier = Modifier

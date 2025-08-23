@@ -2,14 +2,14 @@ package com.iries.youtubealarm.data.database
 
 import androidx.room.RoomDatabase
 import com.iries.youtubealarm.data.dao.AlarmsDao
-import com.iries.youtubealarm.data.dao.ChannelsDao
-import com.iries.youtubealarm.data.entity.AlarmInfo
-import com.iries.youtubealarm.data.entity.YTChannel
+import com.iries.youtubealarm.data.dao.ArtistsDao
+import com.iries.youtubealarm.data.entity.AlarmEntity
+import com.iries.youtubealarm.data.entity.ArtistEntity
 
-@androidx.room.Database(entities = [AlarmInfo::class, YTChannel::class], version = 1)
+@androidx.room.Database(entities = [AlarmEntity::class, ArtistEntity::class], version = 2)
 abstract class UserDatabase : RoomDatabase() {
 
     abstract fun alarmDao(): AlarmsDao
 
-    abstract fun channelsDao(): ChannelsDao
+    abstract fun artistsDao(): ArtistsDao
 }

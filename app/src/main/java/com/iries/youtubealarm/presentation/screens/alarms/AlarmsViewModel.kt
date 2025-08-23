@@ -3,7 +3,7 @@ package com.iries.youtubealarm.presentation.screens.alarms
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.iries.youtubealarm.data.entity.AlarmInfo
+import com.iries.youtubealarm.data.entity.AlarmEntity
 import com.iries.youtubealarm.data.repository.AlarmsRepository
 import com.iries.youtubealarm.domain.AlarmManager
 import com.iries.youtubealarm.domain.constants.Day
@@ -19,8 +19,8 @@ class AlarmsViewModel @Inject constructor(
     private val alarmsRepo: AlarmsRepository
 ) : ViewModel() {
 
-    private val _allAlarms = MutableStateFlow<List<AlarmInfo>>(emptyList())
-    val allAlarms: StateFlow<List<AlarmInfo>> = _allAlarms
+    private val _allAlarms = MutableStateFlow<List<AlarmEntity>>(emptyList())
+    val allAlarms: StateFlow<List<AlarmEntity>> = _allAlarms
 
     init {
         viewModelScope.launch {
@@ -32,20 +32,20 @@ class AlarmsViewModel @Inject constructor(
 
 
     fun addAlarm(
-        alarm: AlarmInfo
+        alarm: AlarmEntity
     ) = viewModelScope.launch(Dispatchers.IO) {
         alarm.setAlarmId(alarmsRepo.insert(alarm))
     }
 
     fun updateAlarm(
-        alarm: AlarmInfo
+        alarm: AlarmEntity
     ) = viewModelScope.launch(Dispatchers.IO) {
         alarmsRepo.update(alarm)
     }
 
     fun removeAlarm(
         context: Context,
-        alarm: AlarmInfo
+        alarm: AlarmEntity
     ) = viewModelScope.launch(Dispatchers.IO) {
         alarmsRepo.delete(alarm)
         cancelAlarms(context, alarm.getDaysId())
@@ -53,7 +53,7 @@ class AlarmsViewModel @Inject constructor(
 
     fun activateAlarm(
         context: Context,
-        alarm: AlarmInfo
+        alarm: AlarmEntity
     ) {
         alarm.setActive(true)
         alarm.getDaysId().keys.forEach {

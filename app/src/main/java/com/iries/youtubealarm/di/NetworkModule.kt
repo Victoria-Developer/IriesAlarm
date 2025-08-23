@@ -1,7 +1,7 @@
 package com.iries.youtubealarm.di
 
 
-import com.iries.youtubealarm.data.network.YoutubeSearchApi
+import com.iries.youtubealarm.data.network.SoundCloudApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,9 +30,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideGeminiApiService(httpClient: HttpClient): YoutubeSearchApi {
-        return YoutubeSearchApi(httpClient)
+    fun provideMusicApiService(httpClient: HttpClient): SoundCloudApiService {
+        return SoundCloudApiService(httpClient)
     }
-
 
 }

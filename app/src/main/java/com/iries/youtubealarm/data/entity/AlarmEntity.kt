@@ -8,7 +8,7 @@ import com.iries.youtubealarm.domain.converters.DayTypeConverter
 import java.util.Locale
 
 @Entity(tableName = "ALARMS")
-class AlarmInfo {
+class AlarmEntity {
 
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0

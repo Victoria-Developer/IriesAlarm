@@ -25,12 +25,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.iries.youtubealarm.data.entity.AlarmInfo
+import com.iries.youtubealarm.data.entity.AlarmEntity
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AlarmItem(
-    alarm: AlarmInfo,
+    alarm: AlarmEntity,
     onRemoveAlarm: () -> Unit,
     onEditAlarm: () -> Unit,
     onSwitchAlarm: (Boolean) -> Unit

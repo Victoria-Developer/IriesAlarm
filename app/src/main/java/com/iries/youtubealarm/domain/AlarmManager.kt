@@ -4,7 +4,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import com.iries.youtubealarm.data.entity.AlarmInfo
+import com.iries.youtubealarm.data.entity.AlarmEntity
 import com.iries.youtubealarm.domain.constants.Day
 import com.iries.youtubealarm.domain.constants.Extra
 import com.iries.youtubealarm.presentation.receivers.AlarmReceiver
@@ -14,7 +14,7 @@ object AlarmManager {
 
     fun setRepeatingAlarm(
         context: Context,
-        alarm: AlarmInfo, day: Day
+        alarm: AlarmEntity, day: Day
     ) {
         val hour: Int = alarm.getHour()
         val minute: Int = alarm.getMinute()

@@ -6,6 +6,7 @@ plugins {
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+    kotlin("plugin.serialization") version "1.9.22"
 }
 
 android {
@@ -101,19 +102,10 @@ dependencies {
     // Fancy scrollable timePicker
     implementation (libs.wheelpickercompose)
 
-
-    // Google Sign-In
-    implementation(libs.play.services.auth)
-    implementation(libs.google.api.client.android)
-
     // Json, Gson
     implementation(libs.google.http.client.gson)
     implementation(libs.json.io)
     implementation(libs.gson)
-
-    // mp3 converter
-    //implementation(libs.youtubedl.android.library)
-    //implementation(libs.youtubedl.android.ffmpeg)
 
     // Room
     implementation(libs.androidx.room.runtime)
@@ -125,7 +117,11 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     kapt(libs.hilt.android.compiler)
 
+    // Splash screen support for older Api
     implementation(libs.androidx.core.splashscreen)
+
+    // Exo player
+    implementation(libs.androidx.media3.exoplayer)
 
     // Compose navigation
     implementation(libs.androidx.navigation.compose)
