@@ -3,6 +3,7 @@ package com.iries.alarm.domain.usecases
 import com.iries.alarm.data.local.repository.ArtistsRepository
 import com.iries.alarm.data.remote.SearchApiRepository
 import com.iries.alarm.domain.models.Artist
+import com.iries.alarm.domain.models.RingtoneInfo
 import com.iries.alarm.domain.models.Track
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -30,7 +31,7 @@ class SearchApiUseCase @Inject constructor(
         }
     }
 
-    suspend fun findArtistTracks(artistId: Long): Result<List<Track>> {
+    private suspend fun findArtistTracks(artistId: Long): Result<List<Track>> {
         return authGuard { accessToken ->
             searchApiRepository.findArtistTracks(
                 artistId, accessToken
@@ -38,12 +39,27 @@ class SearchApiUseCase @Inject constructor(
         }
     }
 
-    suspend fun resolveStreamUrl(mediaUrl: String): Result<String> {
+    private suspend fun resolveStreamUrl(trackId: Long): Result<String> {
         return authGuard { accessToken ->
             searchApiRepository.resolveStreamUrl(
-                mediaUrl, accessToken
+                trackId, accessToken
             )
         }
+    }
+
+    suspend fun findRandomRingtone(): RingtoneInfo {
+        val ringtoneInfo = RingtoneInfo()
+        val artist = getRandomArtist() ?: return ringtoneInfo
+        val tracksResult = findArtistTracks(artist.id)
+        tracksResult.onSuccess { tracks ->
+            val track = tracks.random()
+            resolveStreamUrl(track.id).onSuccess { uri ->
+                ringtoneInfo.trackUri = uri
+                ringtoneInfo.trackTitle = track.title
+                ringtoneInfo.artistName = artist.username
+            }
+        }
+        return ringtoneInfo
     }
 
     /** Local database */
@@ -51,7 +67,7 @@ class SearchApiUseCase @Inject constructor(
         return artistsRepository.getAllArtists()
     }
 
-    fun getRandomArtist(): Artist? {
+    private fun getRandomArtist(): Artist? {
         return artistsRepository.getRandomArtist()
     }
 

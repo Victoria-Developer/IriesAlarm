@@ -9,5 +9,4 @@ data class Track(
     val title: String,
     @SerialName("artwork_url") val imgUrl: String? = null,
     @SerialName("streamable") val isStreamable: Boolean,
-    var progressiveUrl: String? = null
 )

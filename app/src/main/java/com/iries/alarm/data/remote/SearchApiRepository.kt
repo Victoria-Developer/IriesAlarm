@@ -56,7 +56,6 @@ class SearchApiRepository @Inject constructor(private val httpClient: HttpClient
     }
 
     private fun parseArtistsResponse(jsonString: String): List<Artist> {
-        val json = Json { ignoreUnknownKeys = true }
         val jsonObject = json.parseToJsonElement(jsonString).jsonObject
         val collectionArray = jsonObject["collection"]!!.jsonArray
         return collectionArray.map {
@@ -83,36 +82,23 @@ class SearchApiRepository @Inject constructor(private val httpClient: HttpClient
     }
 
     private fun parseTracksResponse(jsonString: String): List<Track> {
-        val json = Json { ignoreUnknownKeys = true }
-        val root = json.parseToJsonElement(jsonString).jsonObject
-        val itemsArray = root["collection"]!!.jsonArray
-
+        val itemsArray = json.parseToJsonElement(jsonString).jsonArray
         return itemsArray.map { element ->
-            val track = json.decodeFromJsonElement<Track>(element)
-
-            val mediaArray = element.jsonObject["media"]!!
-                .jsonObject["transcodings"]!!
-                .jsonArray
-
-            val progressiveUrl = mediaArray.firstOrNull { transcoding ->
-                transcoding.jsonObject["format"]!!
-                    .jsonObject["protocol"]!!.jsonPrimitive.content == "progressive"
-            }?.jsonObject?.get("url")?.jsonPrimitive?.content
-
-            track.copy(progressiveUrl = progressiveUrl)
+            json.decodeFromJsonElement<Track>(element)
         }
     }
 
     /** Resolve stream url */
-    suspend fun resolveStreamUrl(mediaUrl: String, accessToken: String): Result<String> {
-        val result = getRequest(mediaUrl, accessToken)
+    suspend fun resolveStreamUrl(trackId:Long, accessToken: String): Result<String> {
+        val result = getRequest("/tracks/$trackId/streams", accessToken)
         return result.mapCatching {
             parseResolvedUrl(it)
         }
     }
 
     private fun parseResolvedUrl(jsonString: String): String {
+        println(jsonString)
         val jsonObject = json.parseToJsonElement(jsonString).jsonObject
-        return jsonObject["url"]!!.jsonPrimitive.content
+        return jsonObject["http_mp3_128_url"]!!.jsonPrimitive.content
     }
 }

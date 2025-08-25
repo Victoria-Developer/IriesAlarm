@@ -41,7 +41,7 @@ class AuthActivity : ComponentActivity() {
     private fun buildLoginUri(): Uri {
         return ("https://secure.soundcloud.com/authorize?" +
                 "client_id=${BuildConfig.client_id}" +
-                "&redirect_uri=iriesalarm://callback" +
+                "&redirect_uri=${BuildConfig.redirect_uri}" +
                 "&response_type=code" +
                 "&state=STATE" +
                 "&display=popup").toUri()

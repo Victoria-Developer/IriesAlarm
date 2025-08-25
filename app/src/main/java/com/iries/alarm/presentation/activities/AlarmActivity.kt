@@ -49,7 +49,7 @@ class AlarmActivity : ComponentActivity() {
         val ringtoneAuthor =
             intent.getStringExtra(Extra.RINGTONE_AUTHOR_EXTRA.extraName) ?: "Unknown Author"
 
-        if (ringtoneUri == null) playDefaultRingtone()
+        if (ringtoneUri.isNullOrEmpty()) playDefaultRingtone()
         else playTrack(ringtoneUri = ringtoneUri)
 
         enableEdgeToEdge()
