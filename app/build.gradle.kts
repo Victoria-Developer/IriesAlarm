@@ -3,18 +3,18 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
 
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
     kotlin("plugin.serialization") version "1.9.22"
 }
 
 android {
-    namespace = "com.iries.youtubealarm"
+    namespace = "com.iries.alarm"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.iries.youtubealarm"
+        applicationId = "com.iries.alarm"
         minSdk = 31
         targetSdk = 36
         versionCode = 1
@@ -23,24 +23,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
-        }
-
-        ndk {
-            abiFilters.addAll(
-                arrayOf(
-                    "x86", "x86_64",
-                    "armeabi-v7a", "arm64-v8a"
-                )
-            )
-        }
-
-        splits {
-            abi {
-                isEnable = true
-                reset()
-                include("x86", "x86_64", "armeabi-v7a", "arm64-v8a")
-                isUniversalApk = true
-            }
         }
     }
 
@@ -53,20 +35,25 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
         jvmTarget = "17"
     }
+
     buildFeatures {
         buildConfig = true
         compose = true
     }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -78,56 +65,40 @@ android {
     }
 }
 
-buildscript {
-    dependencies {
-        classpath(libs.google.services)
-    }
-}
-
-kapt {
-    correctErrorTypes = true
-}
-
 dependencies {
 
-    // Ktor
+    // Http requests
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
 
-    // Coil
-    implementation(libs.coil.compose)
-
-    // Fancy scrollable timePicker
-    implementation (libs.wheelpickercompose)
-
-    // Json, Gson
-    implementation(libs.google.http.client.gson)
-    implementation(libs.json.io)
-    implementation(libs.gson)
-
-    // Room
+    // Local database
     implementation(libs.androidx.room.runtime)
-    kapt(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
     implementation (libs.androidx.room.ktx)
 
-    // Hilt
+    // Dependency injection
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
-    kapt(libs.hilt.android.compiler)
+    ksp(libs.hilt.android.compiler)
 
+    // Shared preferences
+    implementation(libs.androidx.preference.ktx)
+
+    // Audio player
+    implementation(libs.androidx.media3.exoplayer)
+    // Network images
+    implementation(libs.coil.compose)
+    // Scrollable timePicker
+    implementation (libs.wheelpickercompose)
     // Splash screen support for older Api
     implementation(libs.androidx.core.splashscreen)
-
-    // Exo player
-    implementation(libs.androidx.media3.exoplayer)
-
-    // Compose navigation
+    // Navigation
     implementation(libs.androidx.navigation.compose)
-
+    // Browser intent
+    implementation(libs.androidx.browser)
     implementation(libs.androidx.lifecycle.service)
-    implementation(libs.androidx.preference.ktx)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -136,6 +107,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    // Debugging
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
