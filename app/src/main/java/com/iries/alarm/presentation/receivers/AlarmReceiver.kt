@@ -26,7 +26,7 @@ class AlarmReceiver : BroadcastReceiver() {
             context,
             RingtoneSearchService::class.java
         )
-        context.startService(startIntent)
+        context.startForegroundService(startIntent)
     }
 
 }

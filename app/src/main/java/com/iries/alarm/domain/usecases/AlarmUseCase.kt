@@ -4,8 +4,6 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import com.iries.alarm.data.local.entity.AlarmEntity
-import com.iries.alarm.domain.constants.Day
 import com.iries.alarm.domain.constants.Extra
 import com.iries.alarm.presentation.receivers.AlarmReceiver
 import java.util.Calendar
@@ -14,42 +12,35 @@ object AlarmUseCase {
 
     fun setRepeatingAlarm(
         context: Context,
-        alarm: AlarmEntity, day: Day
+        hour: Int, minute: Int,
+        dayId: Int, requestCode: Int
     ) {
-        val hour: Int = alarm.getHour()
-        val minute: Int = alarm.getMinute()
-        val chosenDay: Int = day.id
-
         val currentCalendar = Calendar.getInstance()
         val currentDay = currentCalendar[Calendar.DAY_OF_WEEK]
 
         val alarmCalendar = Calendar.getInstance()
         alarmCalendar[Calendar.HOUR_OF_DAY] = hour
         alarmCalendar[Calendar.MINUTE] = minute
-        alarmCalendar[Calendar.DAY_OF_WEEK] = chosenDay
+        alarmCalendar[Calendar.DAY_OF_WEEK] = dayId
+        // Important, to avoid alarm seconds and millis precise time
         alarmCalendar.set(Calendar.SECOND, 0)
         alarmCalendar.set(Calendar.MILLISECOND, 0)
 
         val timeInMillis: Long
         if (alarmCalendar.before(currentCalendar)) {
-            val days = currentDay + (7 - chosenDay)
+            val days = currentDay + (7 - dayId)
             currentCalendar.add(Calendar.DATE, days)
             timeInMillis = currentCalendar.timeInMillis
         } else
             timeInMillis = alarmCalendar.timeInMillis
 
-        // alarm code
-        val days = alarm.getDaysId()
-        val alarmId: Long = alarm.getAlarmId()
-        val code = "$alarmId${chosenDay}".toInt()
-        days[day] = code
-        setOneshotAlarm(context, timeInMillis, code, true)
+        setOneshotAlarm(context, timeInMillis, requestCode, true)
     }
 
     fun setOneshotAlarm(
         context: Context,
         timeInMillis: Long,
-        fullAlarmId: Int,
+        requestCode: Int,
         isRepeating: Boolean
     ) {
         val flags =
@@ -58,11 +49,11 @@ object AlarmUseCase {
 
         val nextAlarmIntent = Intent(context, AlarmReceiver::class.java)
         nextAlarmIntent.putExtra(Extra.ALARM_TIME.extraName, timeInMillis)
-        nextAlarmIntent.putExtra(Extra.ALARM_ID.extraName, fullAlarmId)
+        nextAlarmIntent.putExtra(Extra.ALARM_ID.extraName, requestCode)
         nextAlarmIntent.putExtra(Extra.IS_ALARM_REPEATING.extraName, isRepeating)
 
         val pendingIntent = PendingIntent
-            .getBroadcast(context, fullAlarmId, nextAlarmIntent, flags)
+            .getBroadcast(context, requestCode, nextAlarmIntent, flags)
 
         val alarmManager = context
             .getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -73,11 +64,11 @@ object AlarmUseCase {
         )
     }
 
-    fun cancelIntent(intentId: Int, context: Context) {
+    fun cancelIntent(requestCode: Int, context: Context) {
         val flags = PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
         val alarmIntent = Intent(context, AlarmReceiver::class.java)
         val pendingIntent = PendingIntent
-            .getBroadcast(context, intentId, alarmIntent, flags)
+            .getBroadcast(context, requestCode, alarmIntent, flags)
         val alarmManager = context
             .getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmManager.cancel(pendingIntent)

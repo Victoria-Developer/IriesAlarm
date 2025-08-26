@@ -43,9 +43,7 @@ fun AppNavigation(
     var currentPath by remember { mutableStateOf(authScreenDest) }
 
     fun navigate(path: String) {
-        println("Attempt to navigate to $path")
         if (currentPath == path) return
-        println("Navigate")
         val canPopStack = navController
             .popBackStack(route = path, inclusive = false)
         if (!canPopStack) navController.navigate(path)

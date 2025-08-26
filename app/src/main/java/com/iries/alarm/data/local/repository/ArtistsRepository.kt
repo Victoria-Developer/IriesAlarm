@@ -43,17 +43,17 @@ class ArtistsRepository @Inject constructor(
 
     private fun artistEntityToDto(artistEntity: ArtistEntity): Artist {
         return Artist(
-            id = artistEntity.getId(),
-            username = artistEntity.getUsername().toString(),
-            imgUrl = artistEntity.getImgUrl().toString()
+            id = artistEntity.id,
+            username = artistEntity.username.toString(),
+            imgUrl = artistEntity.imgUrl.toString()
         )
     }
 
     private fun dtoToArtistEntity(artist: Artist): ArtistEntity {
         return ArtistEntity().apply {
-            setId(artist.id)
-            setUsername(artist.username)
-            setImgUrl(artist.imgUrl)
+            id = artist.id
+            username = artist.username
+            imgUrl = artist.imgUrl
         }
     }
 

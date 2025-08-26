@@ -1,8 +1,13 @@
 package com.iries.alarm.presentation.services
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import androidx.core.app.NotificationCompat
+import com.iries.alarm.R
 import com.iries.alarm.domain.constants.Extra
 import com.iries.alarm.domain.usecases.SearchApiUseCase
 import com.iries.alarm.presentation.activities.AlarmActivity
@@ -22,11 +27,28 @@ class RingtoneSearchService : Service() {
     lateinit var searchApiUseCase: SearchApiUseCase
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startService()
+        startForeground(333, showNotification())
+        showAlarmActivity()
         return START_STICKY
     }
 
-    private fun startService() = serviceScope.launch {
+    private fun showNotification(): Notification {
+        val channelId = "alarm_channel"
+        val channel = NotificationChannel(
+            channelId,
+            "Iries Alarm",
+            NotificationManager.IMPORTANCE_LOW
+        )
+        getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+
+        return NotificationCompat.Builder(this, channelId)
+            .setContentTitle("Your alarm will ring soon.")
+            .setSmallIcon(R.drawable.baseline_access_alarm_24)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
+    }
+
+    private fun showAlarmActivity() = serviceScope.launch {
         val ringtoneInfo = withContext(Dispatchers.IO) {
             searchApiUseCase.findRandomRingtone()
         }
