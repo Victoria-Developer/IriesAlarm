@@ -31,6 +31,14 @@ class SearchApiUseCase @Inject constructor(
         }
     }
 
+    suspend fun findUserSubscriptions(): Result<List<Artist>> {
+        return authGuard { accessToken ->
+            searchApiRepository.findUserSubscriptions(
+                accessToken
+            )
+        }
+    }
+
     private suspend fun findArtistTracks(artistId: Long): Result<List<Track>> {
         return authGuard { accessToken ->
             searchApiRepository.findArtistTracks(

@@ -55,6 +55,13 @@ class SearchApiRepository @Inject constructor(private val httpClient: HttpClient
         }
     }
 
+    suspend fun findUserSubscriptions(accessToken: String):Result<List<Artist>> {
+        val result = getRequest( "/me/followings", accessToken)
+        return result.mapCatching { response ->
+            parseArtistsResponse(response)
+        }
+    }
+
     private fun parseArtistsResponse(jsonString: String): List<Artist> {
         val jsonObject = json.parseToJsonElement(jsonString).jsonObject
         val collectionArray = jsonObject["collection"]!!.jsonArray
@@ -74,8 +81,7 @@ class SearchApiRepository @Inject constructor(private val httpClient: HttpClient
     }
 
     suspend fun findArtistTracks(userId: Long, accessToken: String): Result<List<Track>> {
-        val url = "/users/$userId/tracks?"
-        val result = getRequest(url, accessToken)
+        val result = getRequest("/users/$userId/tracks?", accessToken)
         return result.mapCatching { response ->
             parseTracksResponse(response)
         }

@@ -55,9 +55,9 @@ class MusicSearchViewModel @Inject constructor(
     }
 
     fun showSubscriptions() = viewModelScope.launch(Dispatchers.IO) {
-        /*search {
-            searchApiUseCase.findUserSubscriptions(authData.accessToken)
-        }*/
+        search {
+            searchApiUseCase.findUserSubscriptions()
+        }
     }
 
     fun showArtistsByName(artistName: String) = viewModelScope.launch(Dispatchers.IO) {
