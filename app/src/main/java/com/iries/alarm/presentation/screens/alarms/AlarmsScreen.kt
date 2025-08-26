@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.iries.alarm.data.local.entity.AlarmEntity
+import com.iries.alarm.domain.models.Alarm
 import com.iries.alarm.presentation.common.AlarmItem
 import com.iries.alarm.presentation.common.DatePicker
 
@@ -38,7 +38,7 @@ fun AlarmsScreen() {
     val viewModel: AlarmsViewModel = hiltViewModel()
     var showDialog by remember { mutableStateOf(false) }
     val alarmsList = viewModel.allAlarms.collectAsState()
-    val selectedAlarm: MutableState<AlarmEntity?> = remember { mutableStateOf(null) }
+    val selectedAlarm: MutableState<Alarm?> = remember { mutableStateOf(null) }
 
     Column(
         modifier = Modifier
@@ -66,8 +66,8 @@ fun AlarmsScreen() {
             onCloseDialog = { showDialog = false },
             onConfirm = {
                 if (alarmsList.value.contains(it)) {
-                    if (it.isActive()) {
-                        viewModel.cancelAlarms(context, it.getDaysId())
+                    if (it.isActive) {
+                        viewModel.cancelAlarms(context, it.days)
                         viewModel.activateAlarm(context, it)
                     }
                     viewModel.updateAlarm(it)
@@ -96,9 +96,9 @@ fun AlarmsScreen() {
                             viewModel.activateAlarm(context, alarm)
                         } else {
                             println("Stop alarm alarm")
-                            viewModel.cancelAlarms(context, alarm.getDaysId())
+                            viewModel.cancelAlarms(context, alarm.days)
                         }
-                        alarm.setActive(it)
+                        alarm.isActive = it
                         viewModel.updateAlarm(alarm)
                     }
                 )

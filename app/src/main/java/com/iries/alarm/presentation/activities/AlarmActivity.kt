@@ -35,11 +35,9 @@ class AlarmActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Wake the screen and show over lockscreen
         setTurnScreenOn(true)
         setShowWhenLocked(true)
 
-        // Optional: dismiss keyguard if needed
         val km = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
         km.requestDismissKeyguard(this, null)
 

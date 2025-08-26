@@ -24,17 +24,17 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.commandiron.wheel_picker_compose.WheelTimePicker
 import com.commandiron.wheel_picker_compose.core.TimeFormat
-import com.iries.alarm.data.local.entity.AlarmEntity
 import com.iries.alarm.domain.constants.Day
+import com.iries.alarm.domain.models.Alarm
 
 @Composable
 fun DatePicker(
     onCloseDialog: () -> Unit,
-    onConfirm: (alarm: AlarmEntity) -> Unit,
-    alarm: AlarmEntity?
+    onConfirm: (alarm: Alarm) -> Unit,
+    alarm: Alarm?
 ) {
-    val newAlarm = alarm ?: AlarmEntity()
-    val days = newAlarm.getDaysId()
+    val selectedAlarm = alarm ?: Alarm()
+    val days = selectedAlarm.days
 
     Dialog(onDismissRequest = onCloseDialog) {
         Column(
@@ -46,9 +46,10 @@ fun DatePicker(
         ) {
 
             WheelTimePicker(
-                timeFormat = TimeFormat.AM_PM
+                timeFormat = TimeFormat.HOUR_24
             ) { snappedTime ->
-                newAlarm.setTime(snappedTime.hour, snappedTime.minute)
+                selectedAlarm.hour = snappedTime.hour
+                selectedAlarm.minute = snappedTime.minute
             }
 
             LazyColumn(
@@ -58,12 +59,12 @@ fun DatePicker(
                 items(Day.entries.toList()) { dayOfWeek ->
                     ClickableText(
                         dayOfWeek.name,
-                        days.contains(dayOfWeek)
+                        days.contains(dayOfWeek.id)
                     ) {
                         if (it)
-                            days[dayOfWeek] = 0
+                            days[dayOfWeek.id] = 0
                         else
-                            days.remove(dayOfWeek)
+                            days.remove(dayOfWeek.id)
                     }
                 }
             }
@@ -73,7 +74,7 @@ fun DatePicker(
                     Text("Dismiss")
                 }
                 Button({
-                    onConfirm(newAlarm)
+                    onConfirm(selectedAlarm)
                     onCloseDialog()
                 }) {
                     Text("Confirm")

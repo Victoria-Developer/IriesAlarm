@@ -24,16 +24,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.iries.alarm.data.local.entity.AlarmEntity
+import com.iries.alarm.domain.constants.Day
+import com.iries.alarm.domain.models.Alarm
+import java.util.Locale
 
 @Composable
 fun AlarmItem(
-    alarm: AlarmEntity,
+    alarm: Alarm,
     onRemoveAlarm: () -> Unit,
     onEditAlarm: () -> Unit,
     onSwitchAlarm: (Boolean) -> Unit
 ) {
-    val isActive = remember { mutableStateOf(alarm.isActive()) }
+    val isActive = remember { mutableStateOf(alarm.isActive) }
 
     Row(
         modifier = Modifier
@@ -45,10 +47,12 @@ fun AlarmItem(
             )
     ) {
 
-        Column{
+        Column {
 
             Text(
-                alarm.getFormattedTime(),
+                String.format(
+                    Locale.getDefault(), "%02d:%02d", alarm.hour, alarm.minute
+                ),
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally),
                 fontSize = 30.sp
@@ -60,9 +64,9 @@ fun AlarmItem(
                     .fillMaxWidth(0.7f)
                     .wrapContentWidth()
             ) {
-                alarm.getDaysId().keys.toList().forEach { dayOfWeek ->
+                alarm.days.keys.toList().forEach { dayId ->
                     Spacer(Modifier.padding(10.dp, 5.dp))
-                    Text(dayOfWeek.name)
+                    Day.getById(dayId).weekName?.let { Text(it) }
                 }
             }
         }
