@@ -2,12 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!--
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-     -->
-
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -31,10 +25,19 @@
         <activity
             android:name=".presentation.activities.MainActivity"
             android:theme="@style/Theme.Launch"
+            android:launchMode="singleTop"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="iriesalarm"
+                    android:host="callback"/>
             </intent-filter>
         </activity>
 
@@ -44,20 +47,6 @@
             android:showOnLockScreen="true"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:exported="true">
-        </activity>
-
-        <activity
-            android:name=".presentation.activities.AuthActivity"
-            android:launchMode="singleTop"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data
-                    android:scheme="iriesalarm"
-                    android:host="callback"/>
-            </intent-filter>
         </activity>
 
         <receiver
@@ -75,6 +64,5 @@
         </service>
 
     </application>
-
 
 </manifest>

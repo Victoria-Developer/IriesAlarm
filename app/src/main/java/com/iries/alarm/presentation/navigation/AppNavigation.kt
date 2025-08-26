@@ -14,8 +14,6 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,20 +22,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.iries.alarm.R
-import com.iries.alarm.domain.AuthState
 import com.iries.alarm.presentation.screens.alarms.AlarmsScreen
 import com.iries.alarm.presentation.screens.music.MusicSearchScreen
-import com.iries.alarm.presentation.screens.auth.AuthViewModel
 import com.iries.alarm.presentation.screens.auth.AuthScreen
 
 @Composable
 fun AppNavigation(
-    navController: NavHostController
+    navController: NavHostController,
+    loginCode: String?
 ) {
 
     val musicScreenDest = Destinations.ChannelsScreenDest.path
@@ -56,17 +52,6 @@ fun AppNavigation(
         currentPath = path
     }
 
-    val authViewModel: AuthViewModel = hiltViewModel()
-    val authState by authViewModel.state.collectAsState()
-
-    LaunchedEffect(authState) {
-        when (authState) {
-            AuthState.RequiresLogin, AuthState.Loading -> navigate(authScreenDest)
-            AuthState.Authorized -> navigate(alarmsScreenDest)
-            AuthState.AuthorizedFirstTime -> navigate(musicScreenDest)
-        }
-    }
-
     Scaffold(
         content = { innerPadding ->
             Column(
@@ -79,11 +64,15 @@ fun AppNavigation(
                         startDestination = authScreenDest
                     ) {
                         composable(authScreenDest) {
-                            AuthScreen(authViewModel = authViewModel)
+                            AuthScreen(
+                                loginCode = loginCode,
+                                onRedirectToMusicScreen = { navigate(musicScreenDest) },
+                                onRedirectToAlarmsScreen = { navigate(alarmsScreenDest) }
+                            )
                         }
 
                         composable(musicScreenDest) {
-                            MusicSearchScreen(authViewModel = authViewModel)
+                            MusicSearchScreen(onRedirectToAuthScreen = { navigate(authScreenDest) })
                         }
                         composable(alarmsScreenDest) {
                             AlarmsScreen()
@@ -93,9 +82,7 @@ fun AppNavigation(
             )
         },
         bottomBar = {
-            if (authState == AuthState.Authorized
-                || authState == AuthState.AuthorizedFirstTime
-            )
+            if (currentPath != authScreenDest)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()

@@ -4,7 +4,6 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import com.iries.alarm.domain.constants.Extra
-import com.iries.alarm.domain.models.RingtoneInfo
 import com.iries.alarm.domain.usecases.SearchApiUseCase
 import com.iries.alarm.presentation.activities.AlarmActivity
 import dagger.hilt.android.AndroidEntryPoint
@@ -17,7 +16,7 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class RingtoneSearchService : Service() {
-    private var serviceScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
+    private var serviceScope: CoroutineScope = CoroutineScope(Dispatchers.Main)
 
     @Inject
     lateinit var searchApiUseCase: SearchApiUseCase
@@ -27,25 +26,18 @@ class RingtoneSearchService : Service() {
         return START_STICKY
     }
 
-    private fun startService() = serviceScope.launch(Dispatchers.Main) {
-        var ringtoneInfo: RingtoneInfo
-        withContext(Dispatchers.IO) {
-            ringtoneInfo = searchApiUseCase.findRandomRingtone()
+    private fun startService() = serviceScope.launch {
+        val ringtoneInfo = withContext(Dispatchers.IO) {
+            searchApiUseCase.findRandomRingtone()
         }
         val alarmActivityIntent = Intent(
             this@RingtoneSearchService, AlarmActivity::class.java
         ).apply {
             this.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra(Extra.RINGTONE_URI_EXTRA.extraName, ringtoneInfo.trackUri)
+            putExtra(Extra.RINGTONE_NAME_EXTRA.extraName, ringtoneInfo.trackTitle)
+            putExtra(Extra.RINGTONE_AUTHOR_EXTRA.extraName, ringtoneInfo.artistName)
         }
-        alarmActivityIntent.putExtra(
-            Extra.RINGTONE_URI_EXTRA.extraName, ringtoneInfo.trackUri
-        )
-        alarmActivityIntent.putExtra(
-            Extra.RINGTONE_NAME_EXTRA.extraName, ringtoneInfo.trackTitle
-        )
-        alarmActivityIntent.putExtra(
-            Extra.RINGTONE_AUTHOR_EXTRA.extraName, ringtoneInfo.artistName
-        )
         startActivity(alarmActivityIntent)
     }
 

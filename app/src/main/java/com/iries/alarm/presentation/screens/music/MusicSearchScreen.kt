@@ -26,13 +26,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.network.HttpException
-import com.iries.alarm.domain.AuthState
 import com.iries.alarm.presentation.common.SearchBar
 import com.iries.alarm.presentation.common.Thumbnail
-import com.iries.alarm.presentation.screens.auth.AuthViewModel
 
 @Composable
-fun MusicSearchScreen(authViewModel: AuthViewModel) {
+fun MusicSearchScreen(onRedirectToAuthScreen:()->Unit) {
 
     val viewModel: MusicSearchViewModel = hiltViewModel()
     val currentArtists = viewModel.visibleArtists.collectAsState()
@@ -59,7 +57,7 @@ fun MusicSearchScreen(authViewModel: AuthViewModel) {
         if (error.value is HttpException
             && (error.value as HttpException).response.code == 401
         ) {
-            authViewModel.updateAuthState(AuthState.RequiresLogin)
+            onRedirectToAuthScreen()
         }
     }
 
