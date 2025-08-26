@@ -38,8 +38,11 @@ class AuthViewModel @Inject constructor(
     }
 
     fun authorizeUser(code: String) = viewModelScope.launch(Dispatchers.IO) {
+        updateAuthState(AuthState.Loading)
         authUseCase.authorize(code).onSuccess {
             updateAuthState(AuthState.AuthorizedFirstTime)
+        }.onFailure {
+            updateAuthState(AuthState.RequiresLogin)
         }
     }
 
