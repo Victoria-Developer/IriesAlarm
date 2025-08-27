@@ -27,8 +27,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.iries.alarm.R
 import com.iries.alarm.presentation.screens.alarms.AlarmsScreen
-import com.iries.alarm.presentation.screens.music.MusicSearchScreen
 import com.iries.alarm.presentation.screens.auth.AuthScreen
+import com.iries.alarm.presentation.screens.music.MusicSearchScreen
 
 @Composable
 fun AppNavigation(
@@ -81,24 +81,26 @@ fun AppNavigation(
         },
         bottomBar = {
             if (currentPath != authScreenDest)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    BottomNavigationItem(
-                        icon = R.drawable.musical_note,
-                        isSelected = currentPath == musicScreenDest,
-                        onClick = { navigate(musicScreenDest) }
-                    )
-                    BottomNavigationItem(
-                        icon = R.drawable.baseline_access_alarm_24,
-                        isSelected = currentPath == alarmsScreenDest,
-                        onClick = { navigate(alarmsScreenDest) }
-                    )
-                }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(bottom = 30.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        BottomNavigationItem(
+                            icon = R.drawable.musical_note,
+                            isSelected = currentPath == musicScreenDest,
+                            onClick = { navigate(musicScreenDest) }
+                        )
+                        BottomNavigationItem(
+                            icon = R.drawable.baseline_access_alarm_24,
+                            isSelected = currentPath == alarmsScreenDest,
+                            onClick = { navigate(alarmsScreenDest) }
+                        )
+                    }
+
         }
     )
 }

@@ -1,14 +1,17 @@
 package com.iries.alarm.presentation.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -32,6 +35,39 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+val AppTypography = Typography(
+    headlineLarge = TextStyle(
+        fontWeight = FontWeight.Bold,
+        fontSize = 30.sp,
+        letterSpacing = 0.sp
+    ),
+    headlineMedium = TextStyle(
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 24.sp,
+        letterSpacing = 0.sp
+    ),
+    titleLarge = TextStyle(
+        fontWeight = FontWeight.Medium,
+        fontSize = 20.sp
+    ),
+
+    bodyLarge = TextStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = 20.sp,
+        lineHeight = 20.sp
+    ),
+    bodyMedium = TextStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        lineHeight = 18.sp
+    ),
+    bodySmall = TextStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+        lineHeight = 16.sp
+    )
+)
+
 @Composable
 fun IriesAlarmTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -51,7 +87,7 @@ fun IriesAlarmTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = AppTypography,
         content = content
     )
 }

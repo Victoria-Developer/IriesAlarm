@@ -25,7 +25,7 @@ fun Thumbnail(
             .build(),
         contentDescription = "Channel thumbnail",
         modifier = Modifier
-            .size(40.dp)
+            .size(60.dp)
             .clip(MaterialTheme.shapes.small),
         placeholder = painterResource(R.drawable.placeholder), // Loading image
         error = painterResource(R.drawable.placeholder) // Error image
