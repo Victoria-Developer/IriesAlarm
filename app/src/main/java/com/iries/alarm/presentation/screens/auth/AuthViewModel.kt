@@ -52,8 +52,7 @@ class AuthViewModel @Inject constructor(
                 "client_id=${BuildConfig.client_id}" +
                 "&redirect_uri=${BuildConfig.redirect_uri}" +
                 "&response_type=code" +
-                "&state=STATE" +
-                "&display=popup").toUri()
+                "&state=STATE").toUri()
         try {
             customTabsIntent.launchUrl(context, loginUrl)
         } catch (e: Exception) {
