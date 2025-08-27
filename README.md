@@ -1,22 +1,13 @@
 
-YouTube channel search is available by keyword and subscription list.
+Artists search is available by artist name and user subscriptions.
+User can save and remove artists by toggling checkboxes.
 
-<img src="https://github.com/user-attachments/assets/5cb9b636-c580-4aee-aa01-30c97375c4f6" width="300" height="700" />
-
-<img src="https://github.com/user-attachments/assets/993ebaeb-1d57-41d2-ba61-b035a99c3836" width="300" height="700" />
-
-***
-
-By clicking on "Select channels" button user can manage selected channels.
-
-<img src="https://github.com/user-attachments/assets/9eacc545-fddb-44bb-9006-8b1f40b910de" width="300" height="700" />
+<img src="https://github.com/user-attachments/assets/d2920505-c6c7-4a83-9585-24e283fa9a1f" width="300" height="700" />
+<img src="https://github.com/user-attachments/assets/6a4ebb53-0048-4c41-9bad-f84f74a34191" width="300" height="700" />
 
 ***
 
-User can choose time and preffered days of week for alarm
+User can choose preffered time and days of week for alarm and edit or remove it any time.
 
-<img src="https://github.com/user-attachments/assets/49557ede-aa3a-430b-b5f7-67b86306cc93" width="300" height="700" />
-
-<img src="https://github.com/user-attachments/assets/4250e2be-851a-4292-87a2-9373558bdf06" width="300" height="700" />
-
-***
+<img src="https://github.com/user-attachments/assets/a23c0310-ba6c-4435-a888-35d04abd9a3e" width="300" height="700" />
+<img src="https://github.com/user-attachments/assets/c50940a2-333a-469f-91e9-8fcb9130cd7b" width="300" height="700" />
