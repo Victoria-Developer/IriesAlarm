@@ -8,6 +8,7 @@ User can save and remove artists by toggling checkboxes.
 ***
 
 User can choose preffered time and days of week for alarm and edit or remove it any time.
+Toggling switch button allows to turn the alarm on and off.
 
 <img src="https://github.com/user-attachments/assets/a23c0310-ba6c-4435-a888-35d04abd9a3e" width="300" height="700" />
 <img src="https://github.com/user-attachments/assets/c50940a2-333a-469f-91e9-8fcb9130cd7b" width="300" height="700" />
