@@ -4,6 +4,7 @@ import android.app.AlarmManager.INTERVAL_DAY
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import androidx.core.content.ContextCompat
 import com.iries.alarm.domain.usecases.AlarmUseCase
 import com.iries.alarm.domain.constants.Extra
 import com.iries.alarm.presentation.services.RingtoneSearchService
@@ -26,7 +27,7 @@ class AlarmReceiver : BroadcastReceiver() {
             context,
             RingtoneSearchService::class.java
         )
-        context.startForegroundService(startIntent)
+        ContextCompat.startForegroundService(context, startIntent)
     }
 
 }
