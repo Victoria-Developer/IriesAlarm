@@ -1,8 +1,10 @@
 package com.iries.alarm.presentation.screens.music
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +16,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -21,22 +25,31 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.network.HttpException
+import com.iries.alarm.domain.constants.SearchCategory
 import com.iries.alarm.presentation.common.SearchBar
 import com.iries.alarm.presentation.common.Thumbnail
 
 @Composable
-fun MusicSearchScreen(onRedirectToAuthScreen:()->Unit) {
+fun MusicSearchScreen(onRedirectToAuthScreen: () -> Unit) {
 
     val viewModel: MusicSearchViewModel = hiltViewModel()
     val currentArtists = viewModel.visibleArtists.collectAsState()
     val savedArtists = viewModel.dbArtists.collectAsState()
     val error = viewModel.error.collectAsState()
     val isFetchRequest = viewModel.isFetchRequest.collectAsState()
+    var selectedSearchCategory by remember {
+        mutableStateOf(SearchCategory.SAVED_IN_DATABASE)
+    }
 
     if (error.value != null) {
         AlertDialog(
@@ -61,22 +74,60 @@ fun MusicSearchScreen(onRedirectToAuthScreen:()->Unit) {
         }
     }
 
-    Column {
-        SearchBar(onSearch = { name -> viewModel.showArtistsByName(name) })
+    @Composable
+    fun searchCategoryButtonColor(searchCategory: SearchCategory): ButtonColors {
+        val isSelected = selectedSearchCategory == searchCategory
+        val containerColor by animateColorAsState(
+            targetValue = if (isSelected) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.surfaceVariant
+        )
+        val contentColor by animateColorAsState(
+            targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary
+            else MaterialTheme.colorScheme.onSurfaceVariant
+        )
 
-        Column(
+        return ButtonDefaults.buttonColors(
+            containerColor = containerColor,
+            contentColor = contentColor
+        )
+    }
+
+    Column (modifier = Modifier.padding(top = 10.dp)){
+        SearchBar(onSearch = {
+            name -> viewModel.showArtistsByName(name)
+            selectedSearchCategory = SearchCategory.SEARCH_BY_KEYWORD
+        })
+
+        Row(
             modifier = Modifier
-                .padding(vertical = 20.dp)
+                .padding(vertical = 30.dp, horizontal = 20.dp)
                 .fillMaxWidth(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Button(onClick = { viewModel.showSavedArtists() }) {
-                Text("Saved artists")
+            Button(
+                modifier = Modifier.weight(1f),
+                colors = searchCategoryButtonColor(
+                    SearchCategory.SAVED_IN_DATABASE
+                ),
+                onClick = {
+                    viewModel.showSavedArtists()
+                    selectedSearchCategory = SearchCategory.SAVED_IN_DATABASE
+                }
+            ) {
+                Text("Favorites", maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
 
-            Button(onClick = { viewModel.showSubscriptions() }) {
-                Text("My subscriptions")
+            Button(
+                modifier = Modifier.weight(1f),
+                colors = searchCategoryButtonColor(
+                    SearchCategory.USER_SUBSCRIPTIONS
+                ),
+                onClick = {
+                    viewModel.showSubscriptions()
+                    selectedSearchCategory = SearchCategory.USER_SUBSCRIPTIONS
+                }
+            ) {
+                Text("Subscriptions", maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
 
@@ -91,14 +142,16 @@ fun MusicSearchScreen(onRedirectToAuthScreen:()->Unit) {
                 )
             }
         } else if (!currentArtists.value.isNullOrEmpty())
-            LazyColumn {
+            LazyColumn (
+                contentPadding = PaddingValues(20.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ){
                 items(currentArtists.value!!.toList()) { visibleArtists ->
                     Row {
                         // Saved artist with the same id as the search result
                         val idMatch = savedArtists.value.firstOrNull { artist ->
                             artist.id == visibleArtists.id
                         }
-
                         Checkbox(
                             checked = idMatch != null,
                             onCheckedChange = { isChecked ->
@@ -109,11 +162,8 @@ fun MusicSearchScreen(onRedirectToAuthScreen:()->Unit) {
                                 }
                             }
                         )
-
                         Thumbnail(visibleArtists.imgUrl)
-
                         Spacer(Modifier.padding(20.dp, 0.dp))
-
                         Text(visibleArtists.username)
                     }
                 }

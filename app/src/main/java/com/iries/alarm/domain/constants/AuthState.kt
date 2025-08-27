@@ -1,4 +1,4 @@
-package com.iries.alarm.domain
+package com.iries.alarm.domain.constants
 
 sealed class AuthState {
     data object Loading : AuthState()

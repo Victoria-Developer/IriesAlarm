@@ -7,7 +7,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iries.alarm.BuildConfig
-import com.iries.alarm.domain.AuthState
+import com.iries.alarm.domain.constants.AuthState
 import com.iries.alarm.domain.usecases.AuthUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

@@ -1,9 +1,11 @@
 package com.iries.alarm.presentation.screens.alarms
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -29,7 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iries.alarm.domain.models.Alarm
 import com.iries.alarm.presentation.common.AlarmItem
-import com.iries.alarm.presentation.common.DatePicker
+import com.iries.alarm.presentation.common.TimePicker
+import java.time.LocalTime
 
 @Composable
 fun AlarmsScreen() {
@@ -38,48 +42,34 @@ fun AlarmsScreen() {
     val viewModel: AlarmsViewModel = hiltViewModel()
     var showDialog by remember { mutableStateOf(false) }
     val alarmsList = viewModel.allAlarms.collectAsState()
-    val selectedAlarm: MutableState<Alarm?> = remember { mutableStateOf(null) }
+    val selectedAlarm: MutableState<Alarm> = remember { mutableStateOf(Alarm()) }
 
     Column(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .padding(top = 50.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Button(
-            onClick = { showDialog = true },
-            modifier = Modifier
-                .size(60.dp),
-            shape = CircleShape,
-            contentPadding = PaddingValues(0.dp)
-        ) {
-            Icon(
-                Icons.Default.Add,
-                contentDescription = "Add alarm"
-            )
-        }
-
-        Spacer(Modifier.padding(0.dp, 20.dp))
-
-        if (showDialog) DatePicker(
+        if (showDialog) TimePicker(
             onCloseDialog = { showDialog = false },
-            onConfirm = {
-                if (alarmsList.value.contains(it)) {
-                    if (it.isActive) {
-                        viewModel.cancelAlarms(context, it.days)
-                        viewModel.activateAlarm(context, it)
-                    }
-                    viewModel.updateAlarm(it)
-                } else {
-                    viewModel.activateAlarm(context, it)
-                    viewModel.addAlarm(it)
-                }
+            onConfirm = { chosenTime, chosenDays ->
+                viewModel.editAlarm(
+                    context, selectedAlarm.value, chosenTime, chosenDays
+                )
             },
-            alarm = selectedAlarm.value
+            initialTime = LocalTime.of(
+                selectedAlarm.value.hour, selectedAlarm.value.minute
+            ),
+            initialDays = selectedAlarm.value.days.keys
         )
 
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.80f),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             items(alarmsList.value.toList()) { alarm ->
                 AlarmItem(
                     alarm = alarm,
@@ -91,21 +81,41 @@ fun AlarmsScreen() {
                         showDialog = true
                     },
                     onSwitchAlarm = {
-                        if (it) {
-                            println("Set repeating alarm")
-                            viewModel.activateAlarm(context, alarm)
-                        } else {
-                            println("Stop alarm alarm")
-                            viewModel.cancelAlarms(context, alarm.days)
-                        }
-                        alarm.isActive = it
-                        viewModel.updateAlarm(alarm)
+                        viewModel.toggleAlarmActivity(
+                            context, selectedAlarm.value, it
+                        )
                     }
                 )
             }
         }
-    }
 
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
+                .align(Alignment.CenterHorizontally)
+                .padding(vertical = 20.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Button(
+                onClick = {
+                    selectedAlarm.value = viewModel.draftNewAlarm()
+                    showDialog = true
+                },
+                modifier = Modifier
+                    .size(60.dp),
+                shape = CircleShape,
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add alarm"
+                )
+            }
+        }
+
+
+    }
 }
 
 

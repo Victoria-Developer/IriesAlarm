@@ -1,5 +1,6 @@
 package com.iries.alarm.presentation.common
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,7 +10,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,38 +21,52 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.commandiron.wheel_picker_compose.WheelTimePicker
 import com.commandiron.wheel_picker_compose.core.TimeFormat
 import com.iries.alarm.domain.constants.Day
-import com.iries.alarm.domain.models.Alarm
+import java.time.LocalTime
 
 @Composable
-fun DatePicker(
+fun TimePicker(
     onCloseDialog: () -> Unit,
-    onConfirm: (alarm: Alarm) -> Unit,
-    alarm: Alarm?
+    onConfirm: (LocalTime, MutableSet<Int>) -> Unit,
+    initialTime: LocalTime,
+    initialDays: Set<Int>
 ) {
-    val selectedAlarm = alarm ?: Alarm()
-    val days = selectedAlarm.days
+    val days: MutableSet<Int> = remember { initialDays.toMutableSet() }
+    println(days)
+    var chosenTime = remember { initialTime }
 
-    Dialog(onDismissRequest = onCloseDialog) {
+    Dialog(
+        onDismissRequest = onCloseDialog,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false
+        )
+    ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.surface)
         ) {
 
             WheelTimePicker(
-                timeFormat = TimeFormat.HOUR_24
+                modifier = Modifier.background(
+                    MaterialTheme.colorScheme.surface
+                ),
+                textColor = MaterialTheme.colorScheme.primary,
+                timeFormat = TimeFormat.HOUR_24,
+                startTime = initialTime
             ) { snappedTime ->
-                selectedAlarm.hour = snappedTime.hour
-                selectedAlarm.minute = snappedTime.minute
+                if (initialTime != snappedTime) {
+                    chosenTime = snappedTime
+                }
             }
 
             LazyColumn(
@@ -61,10 +78,9 @@ fun DatePicker(
                         dayOfWeek.name,
                         days.contains(dayOfWeek.id)
                     ) {
-                        if (it)
-                            days[dayOfWeek.id] = 0
-                        else
-                            days.remove(dayOfWeek.id)
+                        val dayId = dayOfWeek.id
+                        if (it) days.add(dayId)
+                        else days.remove(dayId)
                     }
                 }
             }
@@ -74,7 +90,7 @@ fun DatePicker(
                     Text("Dismiss")
                 }
                 Button({
-                    onConfirm(selectedAlarm)
+                    onConfirm(chosenTime, days)
                     onCloseDialog()
                 }) {
                     Text("Confirm")
@@ -91,16 +107,24 @@ fun ClickableText(
     onClick: (isClicked: Boolean) -> Unit
 ) {
     var textClicked by remember { mutableStateOf(isClicked) }
-    val colour = if (textClicked) Color.LightGray else Color.White
+
+    val backgroundColor = if (textClicked) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+        else MaterialTheme.colorScheme.surface
+
+    val textColor = if (textClicked) MaterialTheme.colorScheme.primary
+    else MaterialTheme.colorScheme.onSurface
 
     Text(
+        text = text,
+        color = textColor,
+        fontSize = 20.sp,
         modifier = Modifier
-            .background(colour)
+            .clip(RoundedCornerShape(8.dp))
+            .background(backgroundColor)
             .clickable(enabled = true) {
                 textClicked = !textClicked
                 onClick(textClicked)
-            },
-        text = text,
-        fontSize = 20.sp
+            }
+            .padding(horizontal = 12.dp, vertical = 6.dp)
     )
 }

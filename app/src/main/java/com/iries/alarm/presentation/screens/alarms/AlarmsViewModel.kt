@@ -11,6 +11,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalTime
+import java.util.Calendar
 import java.util.UUID
 import javax.inject.Inject
 
@@ -32,11 +34,11 @@ class AlarmsViewModel @Inject constructor(
         }
     }
 
-    fun addAlarm(alarm: Alarm) = viewModelScope.launch(Dispatchers.IO) {
+    private fun addAlarm(alarm: Alarm) = viewModelScope.launch(Dispatchers.IO) {
         alarmsRepo.insert(alarm)
     }
 
-    fun updateAlarm(alarm: Alarm) = viewModelScope.launch(Dispatchers.IO) {
+    private fun updateAlarm(alarm: Alarm) = viewModelScope.launch(Dispatchers.IO) {
         alarmsRepo.update(alarm)
     }
 
@@ -45,25 +47,70 @@ class AlarmsViewModel @Inject constructor(
         cancelAlarms(context, alarm.days)
     }
 
-    fun activateAlarm(context: Context, alarm: Alarm) {
+    private fun activateAlarm(context: Context, alarm: Alarm) {
         alarm.isActive = true
-        for (day in alarm.days.keys) {
-            val requestCode = UUID.randomUUID().hashCode()
-            alarm.days[day] = requestCode
+        for (day in alarm.days) {
             AlarmUseCase.setRepeatingAlarm(
                 context = context,
                 hour = alarm.hour,
                 minute = alarm.minute,
-                dayId = day,
-                requestCode = requestCode
+                dayId = day.key,
+                requestCode = day.value
             )
         }
     }
 
-    fun cancelAlarms(context: Context, daysId: HashMap<Int, Int>) {
+    private fun cancelAlarms(context: Context, daysId: HashMap<Int, Int>) {
         daysId.values.forEach { requestCode ->
             AlarmUseCase.cancelIntent(requestCode, context)
         }
+    }
+
+    fun draftNewAlarm():Alarm{
+        val currentTime: LocalTime = LocalTime.now()
+        val calendar = Calendar.getInstance()
+        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+        return Alarm(
+            hour = currentTime.hour,
+            minute = currentTime.minute,
+            days = hashMapOf(dayOfWeek to 0)
+        )
+    }
+
+    fun editAlarm(
+        context: Context, selectedAlarm: Alarm,
+        updatedTime: LocalTime, updatedDays: MutableSet<Int>
+    ) {
+        selectedAlarm.hour = updatedTime.hour
+        selectedAlarm.minute = updatedTime.minute
+        selectedAlarm.days.clear()
+        updatedDays.forEach { dayId ->
+            val requestCode = UUID.randomUUID().hashCode()
+            selectedAlarm.days[dayId] = requestCode
+        }
+
+        if (allAlarms.value.contains(selectedAlarm)) {
+            if (selectedAlarm.isActive) {
+                cancelAlarms(context, selectedAlarm.days)
+                activateAlarm(context, selectedAlarm)
+            }
+            updateAlarm(selectedAlarm)
+        } else {
+            activateAlarm(context, selectedAlarm)
+            addAlarm(selectedAlarm)
+        }
+    }
+
+    fun toggleAlarmActivity(context: Context, selectedAlarm: Alarm, isActive: Boolean) {
+        if (isActive) {
+            println("Set repeating alarm")
+            activateAlarm(context, selectedAlarm)
+        } else {
+            println("Stop alarm alarm")
+            cancelAlarms(context, selectedAlarm.days)
+        }
+        selectedAlarm.isActive = isActive
+        updateAlarm(selectedAlarm)
     }
 
 }
