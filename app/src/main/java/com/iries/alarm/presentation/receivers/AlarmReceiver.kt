@@ -7,7 +7,7 @@ import android.content.Intent
 import androidx.core.content.ContextCompat
 import com.iries.alarm.domain.usecases.AlarmUseCase
 import com.iries.alarm.domain.constants.Extra
-import com.iries.alarm.presentation.services.RingtoneSearchService
+import com.iries.alarm.presentation.services.NotificationService
 
 class AlarmReceiver : BroadcastReceiver() {
 
@@ -25,7 +25,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val startIntent = Intent(
             context,
-            RingtoneSearchService::class.java
+            NotificationService::class.java
         )
         ContextCompat.startForegroundService(context, startIntent)
     }

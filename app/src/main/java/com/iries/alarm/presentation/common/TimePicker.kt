@@ -39,7 +39,6 @@ fun TimePicker(
     initialDays: Set<Int>
 ) {
     val days: MutableSet<Int> = remember { initialDays.toMutableSet() }
-    println(days)
     var chosenTime = remember { initialTime }
 
     Dialog(
