@@ -44,29 +44,34 @@ class AlarmsViewModel @Inject constructor(
 
     fun removeAlarm(context: Context, alarm: Alarm) = viewModelScope.launch(Dispatchers.IO) {
         alarmsRepo.delete(alarm)
-        cancelAlarms(context, alarm.days)
+        cancelAlarms(context, alarm)
     }
 
-    private fun activateAlarm(context: Context, alarm: Alarm) {
+    private fun activateAlarms(context: Context, alarm: Alarm) {
         alarm.isActive = true
-        for (day in alarm.days) {
+        alarm.days.forEach { (dayId, requestCode) ->
             AlarmUseCase.setRepeatingAlarm(
                 context = context,
                 hour = alarm.hour,
                 minute = alarm.minute,
-                dayId = day.key,
-                requestCode = day.value
+                dayId = dayId,
+                requestCode = requestCode
             )
         }
     }
 
-    private fun cancelAlarms(context: Context, daysId: HashMap<Int, Int>) {
-        daysId.values.forEach { requestCode ->
+    private fun cancelAlarms(
+        context: Context,
+        selectedAlarm: Alarm,
+        prevDays: MutableCollection<Int> = selectedAlarm.days.values
+    ) {
+        selectedAlarm.isActive = false
+        prevDays.forEach { requestCode ->
             AlarmUseCase.cancelIntent(requestCode, context)
         }
     }
 
-    fun draftNewAlarm():Alarm{
+    fun draftNewAlarm(): Alarm {
         val currentTime: LocalTime = LocalTime.now()
         val calendar = Calendar.getInstance()
         val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
@@ -83,6 +88,9 @@ class AlarmsViewModel @Inject constructor(
     ) {
         selectedAlarm.hour = updatedTime.hour
         selectedAlarm.minute = updatedTime.minute
+
+        val prevDays = selectedAlarm.days.values
+        // Clear and update days list
         selectedAlarm.days.clear()
         updatedDays.forEach { dayId ->
             val requestCode = UUID.randomUUID().hashCode()
@@ -91,12 +99,12 @@ class AlarmsViewModel @Inject constructor(
 
         if (allAlarms.value.contains(selectedAlarm)) {
             if (selectedAlarm.isActive) {
-                cancelAlarms(context, selectedAlarm.days)
-                activateAlarm(context, selectedAlarm)
+                cancelAlarms(context, selectedAlarm, prevDays)
+                activateAlarms(context, selectedAlarm)
             }
             updateAlarm(selectedAlarm)
         } else {
-            activateAlarm(context, selectedAlarm)
+            activateAlarms(context, selectedAlarm)
             addAlarm(selectedAlarm)
         }
     }
@@ -104,12 +112,11 @@ class AlarmsViewModel @Inject constructor(
     fun toggleAlarmActivity(context: Context, selectedAlarm: Alarm, isActive: Boolean) {
         if (isActive) {
             println("Set repeating alarm")
-            activateAlarm(context, selectedAlarm)
+            activateAlarms(context, selectedAlarm)
         } else {
-            println("Stop alarm alarm")
-            cancelAlarms(context, selectedAlarm.days)
+            println("Stop alarm")
+            cancelAlarms(context, selectedAlarm)
         }
-        selectedAlarm.isActive = isActive
         updateAlarm(selectedAlarm)
     }
 

@@ -41,6 +41,9 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // startActivity(new Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS));
+
+
         mainViewModel.handleIntent(intent)
         setContent {
             IriesAlarmTheme {

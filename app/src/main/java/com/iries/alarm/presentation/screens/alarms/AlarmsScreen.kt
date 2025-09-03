@@ -67,7 +67,9 @@ fun AlarmsScreen() {
 
 
         LazyColumn(
-            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.80f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.80f),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             items(alarmsList.value.toList()) { alarm ->
@@ -82,7 +84,7 @@ fun AlarmsScreen() {
                     },
                     onSwitchAlarm = {
                         viewModel.toggleAlarmActivity(
-                            context, selectedAlarm.value, it
+                            context, alarm, it
                         )
                     }
                 )

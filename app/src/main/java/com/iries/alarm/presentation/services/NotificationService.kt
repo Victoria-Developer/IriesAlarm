@@ -33,50 +33,52 @@ class NotificationService : Service() {
     lateinit var searchApiUseCase: SearchApiUseCase
 
     companion object {
-        const val WARNING_CHANNEL = "warning_channel"
+        const val WARNING_CODE = 333
         const val MAIN_CHANNEL = "main_channel"
+        const val MAIN_CODE = 444
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // or just use
-        buildChannel(
-            WARNING_CHANNEL, "Warning Channel",
-            NotificationManager.IMPORTANCE_DEFAULT,
-            Notification.VISIBILITY_PRIVATE
-        )
-        buildChannel(
+        val channel = NotificationChannel(
             MAIN_CHANNEL, "Main Channel",
             NotificationManager.IMPORTANCE_HIGH,
-            Notification.VISIBILITY_PUBLIC
-        )
-        startForeground(333, buildNotification())
-        showAlarmActivity()
-        return START_STICKY
-    }
-
-    private fun buildChannel(id: String, name: String, importance: Int, visibility: Int) {
-        val channel = NotificationChannel(
-            id, name,
-            importance,
         ).apply {
-            lockscreenVisibility = visibility
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             setSound(null, null)
         }
         manager.createNotificationChannel(channel)
+        startForeground(WARNING_CODE, buildWarningNotification())
+        startService()
+        return START_STICKY
     }
 
-    private fun buildNotification(): Notification {
-        return NotificationCompat.Builder(this, WARNING_CHANNEL)
+    private fun buildWarningNotification(): Notification {
+        return NotificationCompat.Builder(this, MAIN_CHANNEL)
+            .setSmallIcon(R.drawable.baseline_access_alarm_24)
             .setContentTitle("Iries Alarm")
             .setContentText("Your alarm will be fired soon.")
-            .setSmallIcon(R.drawable.baseline_access_alarm_24)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
             .build()
     }
 
-    private fun showAlarmActivity() = serviceScope.launch(Dispatchers.Main) {
+    private fun buildMainNotification(deleteIntent: PendingIntent) {
+        val notification = NotificationCompat.Builder(this, MAIN_CHANNEL)
+            .setSmallIcon(R.drawable.baseline_access_alarm_24)
+            .setContentTitle("Iries Alarm")
+            .setContentText("Swap to stop alarm.")
+            .setDeleteIntent(deleteIntent)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setAutoCancel(true)
+            .build()
+
+        manager.notify(MAIN_CODE, notification)
+    }
+
+    @Suppress("DEPRECATION")
+    private fun startService() = serviceScope.launch(Dispatchers.Main) {
         val ringtoneInfo = withContext(Dispatchers.IO) {
             searchApiUseCase.findRandomRingtone()
         }
@@ -84,7 +86,7 @@ class NotificationService : Service() {
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         val screenWakeLock = powerManager.newWakeLock(
             PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP,
-            "MyApp::ScreenWakeLock"
+            "IriesAlarm::ScreenWakeLock"
         )
         screenWakeLock.acquire(10 * 1000L)
 
@@ -101,24 +103,14 @@ class NotificationService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(
-            this@NotificationService, MAIN_CHANNEL
-        )
-            .setSmallIcon(R.drawable.baseline_access_alarm_24)
-            .setContentTitle("Iries Alarm")
-            .setContentText("Swap to stop alarm.")
-            .setDeleteIntent(stopRingtoneIntent)
-            .setPriority(NotificationCompat.PRIORITY_MAX)
-            .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setAutoCancel(true)
-            .build()
+        buildMainNotification(stopRingtoneIntent)
+        screenWakeLock.release()
 
-        manager.notify(444, notification)
+        stopForeground(false)
+        stopSelf()
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
-    }
+    override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
         super.onDestroy()

@@ -23,10 +23,7 @@ class AlarmReceiver : BroadcastReceiver() {
             )
         }
 
-        val startIntent = Intent(
-            context,
-            NotificationService::class.java
-        )
+        val startIntent = Intent(context, NotificationService::class.java)
         ContextCompat.startForegroundService(context, startIntent)
     }
 
