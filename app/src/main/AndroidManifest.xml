@@ -9,9 +9,7 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
@@ -47,7 +45,7 @@
         </activity>
 
         <receiver
-            android:name=".presentation.receivers.AlarmReceiver"
+            android:name=".presentation.receivers.StartAlarmReceiver"
             android:enabled="true"
             android:exported="true" >
             <intent-filter>
@@ -56,16 +54,16 @@
         </receiver>
 
         <receiver
-            android:name=".presentation.receivers.StopRingtoneReceiver"
+            android:name=".presentation.receivers.StopAlarmReceiver"
             android:exported="false" />
 
         <service
             android:name=".presentation.services.NotificationService"
-            android:foregroundServiceType="mediaPlayback">
+            android:foregroundServiceType="shortService">
         </service>
 
         <service
-            android:name=".presentation.services.RingtoneService">
+            android:name=".presentation.services.RingtonePlaybackService">
         </service>
 
     </application>
