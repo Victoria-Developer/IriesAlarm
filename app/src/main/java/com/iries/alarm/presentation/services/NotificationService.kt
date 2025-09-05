@@ -8,43 +8,42 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
-import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import com.iries.alarm.R
-import com.iries.alarm.presentation.activities.MainActivity
+import com.iries.alarm.presentation.activities.AlarmActivity
 import com.iries.alarm.presentation.receivers.StopAlarmReceiver
 
 
 class NotificationService : Service() {
 
     companion object {
-        const val MAIN_CHANNEL = "main_channel"
-        const val MAIN_CODE = 444
+        const val NOTIFICATION_CHANNEL_CODE = "main_channel"
+        const val NOTIFICATION_CODE = 444
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Create notification channel if doesn't exist yet
         val manager: NotificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (manager.getNotificationChannel(MAIN_CHANNEL) == null) {
+        if (manager.getNotificationChannel(NOTIFICATION_CHANNEL_CODE) == null) {
             val channel = createNotificationChannel()
             manager.createNotificationChannel(channel)
         }
 
         // Wake up the screen
-        val screenWakeLock = initializeScreenWakeLock()
+        //val screenWakeLock = initializeScreenWakeLock()
 
         // Show notification
-        startForeground(MAIN_CODE, buildNotification())
+        startForeground(NOTIFICATION_CODE, buildNotification())
 
         // Release screen lock
-        screenWakeLock?.release()
+       // screenWakeLock?.release()
         stopForeground(STOP_FOREGROUND_DETACH)
         stopSelf()
         return START_STICKY
     }
 
-    @Suppress("DEPRECATION")
+    /*
     private fun initializeScreenWakeLock(): PowerManager.WakeLock? {
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         val screenWakeLock = powerManager.newWakeLock(
@@ -54,10 +53,11 @@ class NotificationService : Service() {
         screenWakeLock.acquire(10 * 1000L)
         return screenWakeLock
     }
+     */
 
     private fun createNotificationChannel(): NotificationChannel {
         return NotificationChannel(
-            MAIN_CHANNEL, "Main Channel",
+            NOTIFICATION_CHANNEL_CODE, "Main Channel",
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
@@ -66,31 +66,36 @@ class NotificationService : Service() {
     }
 
     private fun buildNotification(): Notification {
-        // PendingIntent for tapping the notification
-        val tapIntent = PendingIntent.getActivity(
-            this@NotificationService, 0,
-            Intent(this@NotificationService, MainActivity::class.java).apply {
+        // Full screen intent, also prevents notification hiding
+        val fullScreenIntent = PendingIntent.getActivity(
+            this, 0,
+            Intent(this, AlarmActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // PendingIntent to stop the alarm when user swipes away
+        // Stop the alarm intent
         val deleteIntent = PendingIntent.getBroadcast(
-            this@NotificationService, 0,
-            Intent(this@NotificationService, StopAlarmReceiver::class.java),
+            this, 0,
+            Intent(this, StopAlarmReceiver::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        return NotificationCompat.Builder(this, MAIN_CHANNEL)
+        return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_CODE)
             .setSmallIcon(R.drawable.baseline_access_alarm_24)
             .setContentTitle("Iries Alarm")
-            .setContentText("Swap to stop alarm.")
-            .setContentIntent(tapIntent)
+            .setContentText("It's time to wake up.")
             .setDeleteIntent(deleteIntent)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(false)
+            .setFullScreenIntent(fullScreenIntent, true)
+            .addAction(
+                R.drawable.baseline_access_alarm_24,
+                "Stop",
+                deleteIntent
+            )
             .build()
     }
 

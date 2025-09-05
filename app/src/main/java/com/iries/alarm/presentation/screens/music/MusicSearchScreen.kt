@@ -67,11 +67,11 @@ fun MusicSearchScreen(onRedirectToAuthScreen: () -> Unit) {
             text = { Text("Something went wrong. Please, try again.") }
         )
 
-        if (error.value is HttpException
+        /*if (error.value is HttpException
             && (error.value as HttpException).response.code == 401
         ) {
             onRedirectToAuthScreen()
-        }
+        }*/
     }
 
     @Composable
