@@ -27,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iries.alarm.domain.models.Alarm
@@ -38,7 +37,6 @@ import java.time.LocalTime
 @Composable
 fun AlarmsScreen() {
 
-    val context = LocalContext.current
     val viewModel: AlarmsViewModel = hiltViewModel()
     var showDialog by remember { mutableStateOf(false) }
     val alarmsList = viewModel.allAlarms.collectAsState()
@@ -55,8 +53,8 @@ fun AlarmsScreen() {
         if (showDialog) TimePicker(
             onCloseDialog = { showDialog = false },
             onConfirm = { chosenTime, chosenDays ->
-                viewModel.editAlarm(
-                    context, selectedAlarm.value, chosenTime, chosenDays
+                viewModel.changeAlarmDateAndTime(
+                    selectedAlarm.value, chosenTime, chosenDays
                 )
             },
             initialTime = LocalTime.of(
@@ -76,7 +74,7 @@ fun AlarmsScreen() {
                 AlarmItem(
                     alarm = alarm,
                     onRemoveAlarm = {
-                        viewModel.removeAlarm(context, alarm)
+                        viewModel.removeAlarm(alarm)
                     },
                     onEditAlarm = {
                         selectedAlarm.value = alarm
@@ -84,7 +82,7 @@ fun AlarmsScreen() {
                     },
                     onSwitchAlarm = {
                         viewModel.toggleAlarmActivity(
-                            context, alarm, it
+                            alarm, it
                         )
                     }
                 )
