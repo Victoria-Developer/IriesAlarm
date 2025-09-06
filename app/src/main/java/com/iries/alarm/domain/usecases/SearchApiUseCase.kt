@@ -5,6 +5,9 @@ import com.iries.alarm.data.remote.SearchApiRepository
 import com.iries.alarm.domain.models.Artist
 import com.iries.alarm.domain.models.RingtoneInfo
 import com.iries.alarm.domain.models.Track
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -23,19 +26,38 @@ class SearchApiUseCase @Inject constructor(
         )
     }
 
+    /** Some artists might have all tracks blocked for certain regions */
+    private suspend fun filterOutForbiddenResults(
+        artists: Result<List<Artist>>
+    ): Result<List<Artist>> = artists.map { list ->
+        coroutineScope {
+            list.map { artist ->
+                async {
+                    val hasTracks = !findArtistTracks(artist.id).getOrNull().isNullOrEmpty()
+                    artist.takeIf { hasTracks }
+                }
+            }.awaitAll()
+                .filterNotNull()
+        }
+    }
+
     suspend fun findArtistsByName(artistName: String): Result<List<Artist>> {
         return authGuard { accessToken ->
-            searchApiRepository.findArtistsByName(
+            val artists = searchApiRepository.findArtistsByName(
                 artistName, accessToken
             )
+            // Filter out if all tracks are blocked
+            filterOutForbiddenResults(artists)
         }
     }
 
     suspend fun findUserSubscriptions(): Result<List<Artist>> {
         return authGuard { accessToken ->
-            searchApiRepository.findUserSubscriptions(
+            val artists = searchApiRepository.findUserSubscriptions(
                 accessToken
             )
+            // Filter out if all tracks are blocked
+            filterOutForbiddenResults(artists)
         }
     }
 
@@ -60,6 +82,7 @@ class SearchApiUseCase @Inject constructor(
         val artist = getRandomArtist() ?: return ringtoneInfo
         val tracksResult = findArtistTracks(artist.id)
         tracksResult.onSuccess { tracks ->
+            if (tracks.isEmpty()) return@onSuccess
             val track = tracks.random()
             resolveStreamUrl(track.id).onSuccess { uri ->
                 ringtoneInfo.trackUri = uri

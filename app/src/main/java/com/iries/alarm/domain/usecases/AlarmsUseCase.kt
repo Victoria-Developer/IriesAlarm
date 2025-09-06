@@ -40,6 +40,7 @@ class AlarmsUseCase @Inject constructor(
         val alarms = alarmsRepository.getAllAlarms().first()
         for (alarm in alarms) {
             if (!alarm.isActive) continue
+            cancelAlarm(alarm)
             activateAlarm(alarm)
         }
     }
