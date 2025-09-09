@@ -44,6 +44,15 @@ class SearchApiRepository @Inject constructor(private val httpClient: HttpClient
         }
     }
 
+    /*
+    suspend fun getUserInfo(accessToken: String): Result<Artist>{
+        val result = getRequest( "/me", accessToken)
+        return result.mapCatching { response ->
+            val jsonObject = json.parseToJsonElement(response).jsonObject
+            json.decodeFromJsonElement<Artist>(jsonObject)
+        }
+    }*/
+
     /** Artists search */
     suspend fun findArtistsByName(artistName: String, accessToken: String): Result<List<Artist>> {
         val encodedQuery = URLEncoder.encode(artistName, "UTF-8")
@@ -71,14 +80,14 @@ class SearchApiRepository @Inject constructor(private val httpClient: HttpClient
     }
 
     /** Tracks search */
-    suspend fun findTracksByGenre(genres: List<String>, accessToken: String): Result<List<Track>> {
+    /*suspend fun findTracksByGenre(genres: List<String>, accessToken: String): Result<List<Track>> {
         val url = "/tracks?" +
                 "genres=${genres.joinToString(separator = ",")}"
         val result = getRequest(url, accessToken)
         return result.mapCatching { response ->
             parseTracksResponse(response)
         }
-    }
+    }*/
 
     suspend fun findArtistTracks(userId: Long, accessToken: String): Result<List<Track>> {
         val result = getRequest("/users/$userId/tracks?", accessToken)
