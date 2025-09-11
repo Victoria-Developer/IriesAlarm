@@ -4,9 +4,10 @@ import android.app.AlarmManager.INTERVAL_DAY
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import com.iries.alarm.domain.constants.Extra
 import com.iries.alarm.domain.usecases.AlarmsUseCase
-import com.iries.alarm.presentation.services.RingtonePlaybackService
+import com.iries.alarm.presentation.services.AlarmService
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -28,9 +29,8 @@ class StartAlarmReceiver : BroadcastReceiver() {
                 timeInMillis + INTERVAL_DAY * 7, alarmId, true
             )
         }
-
-        val startIntent = Intent(context, RingtonePlaybackService::class.java)
-        context.startService(startIntent)
+        Log.d("StartAlarmReceiver", "Started foreground service")
+        context.startForegroundService(Intent(context, AlarmService::class.java))
     }
 
 }

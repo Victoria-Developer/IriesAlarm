@@ -19,6 +19,8 @@ class AlarmsUseCase @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
 
+    private val alarmAction = "manage alarm"
+
     fun getAllAlarms(): Flow<List<Alarm>> {
         return alarmsRepository.getAllAlarms()
     }
@@ -52,7 +54,9 @@ class AlarmsUseCase @Inject constructor(
         alarm.isActive = false
         for (code in requestCodes) {
             val flags = PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            val alarmIntent = Intent(context, StartAlarmReceiver::class.java)
+            val alarmIntent = Intent(context, StartAlarmReceiver::class.java).apply {
+                action = alarmAction
+            }
             val pendingIntent = PendingIntent
                 .getBroadcast(context, code, alarmIntent, flags)
             val alarmManager = context
@@ -96,6 +100,7 @@ class AlarmsUseCase @Inject constructor(
             putExtra(Extra.ALARM_TIME.extraName, timeInMillis)
             putExtra(Extra.ALARM_ID.extraName, requestCode)
             putExtra(Extra.IS_ALARM_REPEATING.extraName, isRepeating)
+            action = alarmAction
         }
 
         val pendingIntent = PendingIntent
