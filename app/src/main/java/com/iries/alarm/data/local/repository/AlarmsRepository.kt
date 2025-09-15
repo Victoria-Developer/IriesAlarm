@@ -43,7 +43,8 @@ class AlarmsRepository @Inject constructor(private var alarmsDao: AlarmsDao) {
             days = json.decodeFromString(alarmEntity.days),
             isActive = alarmEntity.isActive,
             hour = alarmEntity.hour,
-            minute = alarmEntity.minute
+            minute = alarmEntity.minute,
+            isRepeating = alarmEntity.isRepeating
         )
     }
 
@@ -54,6 +55,7 @@ class AlarmsRepository @Inject constructor(private var alarmsDao: AlarmsDao) {
             isActive = alarm.isActive
             hour = alarm.hour
             minute = alarm.minute
+            isRepeating = alarm.isRepeating
         }
     }
 }

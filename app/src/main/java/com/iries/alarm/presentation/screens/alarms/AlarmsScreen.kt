@@ -53,7 +53,7 @@ fun AlarmsScreen() {
         if (showDialog) TimePicker(
             onCloseDialog = { showDialog = false },
             onConfirm = { chosenTime, chosenDays ->
-                viewModel.changeAlarmDateAndTime(
+                viewModel.editAlarm(
                     selectedAlarm.value, chosenTime, chosenDays
                 )
             },

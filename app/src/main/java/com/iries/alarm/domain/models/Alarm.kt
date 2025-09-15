@@ -5,5 +5,6 @@ class Alarm (
     var days: HashMap<Int, Int> = hashMapOf(), // dayId (Mon, Fri etc) - alarm intent id
     var isActive: Boolean = false,
     var hour: Int = 0,
-    var minute: Int = 0
+    var minute: Int = 0,
+    var isRepeating: Boolean = true
 )

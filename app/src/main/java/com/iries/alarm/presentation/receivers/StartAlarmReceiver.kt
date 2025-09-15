@@ -1,6 +1,5 @@
 package com.iries.alarm.presentation.receivers
 
-import android.app.AlarmManager.INTERVAL_DAY
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -23,10 +22,12 @@ class StartAlarmReceiver : BroadcastReceiver() {
         val isRepeating = intent
             .getBooleanExtra(Extra.IS_ALARM_REPEATING.extraName, false)
         if (isRepeating) {
-            val timeInMillis = intent.getLongExtra(Extra.ALARM_TIME.extraName, 0)
-            val alarmId = intent.getIntExtra(Extra.ALARM_ID.extraName, 0)
+            val hour = intent.getIntExtra(Extra.ALARM_HOUR.extraName, 0)
+            val minute = intent.getIntExtra(Extra.ALARM_MINUTE.extraName, 0)
+            val day = intent.getIntExtra(Extra.ALARM_DAY.extraName, 0)
+            val code = intent.getIntExtra(Extra.ALARM_CODE.extraName, 0)
             alarmsUseCase.setAlarm(
-                timeInMillis + INTERVAL_DAY * 7, alarmId, true
+                requestCode = code, hour = hour, minute = minute, dayId = day
             )
         }
         Log.d("StartAlarmReceiver", "Started foreground service")
