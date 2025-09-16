@@ -11,4 +11,5 @@ class AlarmEntity {
     var isActive: Boolean = false
     var hour: Int = 0
     var minute: Int = 0
+    var isRepeating: Boolean = true
 }

@@ -46,27 +46,28 @@ class AlarmActivity : ComponentActivity() {
         sendBroadcast(stopIntent)
         finish()
     }
-}
 
-@Composable
-fun AlarmActivityScreen(onStopAlarm: () -> Unit) {
-    Scaffold { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+    @Composable
+    fun AlarmActivityScreen(onStopAlarm: () -> Unit) {
+        Scaffold { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
             ) {
-                Text("Iries Alarm")
-                Text("It's time to wake up!")
-                Button(onClick = onStopAlarm) {
-                    Text("Turn off")
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Iries Alarm")
+                    Text("It's time to wake up!")
+                    Button(onClick = onStopAlarm) {
+                        Text("Turn off")
+                    }
                 }
             }
         }
     }
+
 }

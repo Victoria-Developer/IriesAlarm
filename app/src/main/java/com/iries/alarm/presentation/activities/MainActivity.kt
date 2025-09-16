@@ -14,14 +14,17 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
+import com.iries.alarm.domain.usecases.AlarmsUseCase
 import com.iries.alarm.presentation.navigation.AppNavigation
 import com.iries.alarm.presentation.theme.IriesAlarmTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
+    @Inject lateinit var alarmsUseCase: AlarmsUseCase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -42,7 +45,6 @@ class MainActivity : ComponentActivity() {
         }
 
         // startActivity(new Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS));
-
 
         mainViewModel.handleIntent(intent)
         setContent {
