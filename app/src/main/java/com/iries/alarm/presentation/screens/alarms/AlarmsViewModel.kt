@@ -43,47 +43,43 @@ class AlarmsViewModel @Inject constructor(
         return Alarm(
             hour = currentTime.hour,
             minute = currentTime.minute,
-            days = hashMapOf(dayOfWeek to 0)
+            days = hashMapOf(dayOfWeek to 0),
+            isActive = true
         )
     }
 
-    fun changeAlarmDateAndTime(
-        alarm: Alarm, updatedTime: LocalTime,
-        updatedDays: MutableSet<Int>
-    ) = viewModelScope.launch(Dispatchers.IO) {
-        alarm.hour = updatedTime.hour
-        alarm.minute = updatedTime.minute
+    fun editAlarm(alarm: Alarm, updatedTime: LocalTime, updatedDays: MutableSet<Int>) =
+        viewModelScope.launch(Dispatchers.IO) {
+            alarm.hour = updatedTime.hour
+            alarm.minute = updatedTime.minute
 
-        val prevDays = alarm.days.values
-        // Clear and update days list
-        alarm.days.clear()
-        updatedDays.forEach { dayId ->
-            val requestCode = UUID.randomUUID().hashCode()
-            alarm.days[dayId] = requestCode
-        }
-
-        if(alarm.isActive){
-            alarmsUseCase.cancelAlarm(alarm, prevDays)
-            alarmsUseCase.activateAlarm(alarm)
-        }
-        alarmsUseCase.updateAlarm(alarm)
-
-        if (allAlarms.value.contains(alarm)) {
+            val currentDays: HashMap<Int, Int> =
+                updatedDays.associateWithTo(HashMap()) { UUID.randomUUID().hashCode() }
             if (alarm.isActive) {
-                alarmsUseCase.cancelAlarm(alarm, prevDays)
-                alarmsUseCase.activateAlarm(alarm)
+                alarmsUseCase.cancelAlarm(alarm)
+                for (dayCode in currentDays) {
+                    alarmsUseCase.setAlarm(
+                        alarm.hour, alarm.minute, dayCode.key, dayCode.value
+                    )
+                }
             }
-            alarmsUseCase.updateAlarm(alarm)
-        } else {
-            alarmsUseCase.activateAlarm(alarm)
-            alarmsUseCase.addAlarm(alarm)
+            alarm.days = currentDays
+
+            if (allAlarms.value.contains(alarm))
+                alarmsUseCase.updateAlarm(alarm)
+            else
+                alarmsUseCase.addAlarm(alarm)
         }
-    }
 
     fun toggleAlarmActivity(alarm: Alarm, isActive: Boolean) =
         viewModelScope.launch(Dispatchers.IO) {
+            alarm.isActive = isActive
             if (isActive) {
-                alarmsUseCase.activateAlarm(alarm)
+                for (dayCode in alarm.days) {
+                    alarmsUseCase.setAlarm(
+                        alarm.hour, alarm.minute, dayCode.key, dayCode.value
+                    )
+                }
             } else {
                 alarmsUseCase.cancelAlarm(alarm)
             }
