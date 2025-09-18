@@ -5,7 +5,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.serialization.Serializable
@@ -33,18 +32,15 @@ class AuthRepository @Inject constructor(private val httpClient: HttpClient) {
 
     suspend fun exchangeAccessToken(code: String): Result<AuthData> {
         return try {
-            val response = httpClient.post(
+            val response: AuthResponse = httpClient.post(
                 "$baseAuthUrl/alarm/user/auth"
             ) {
                 contentType(ContentType.Application.Json)
                 setBody(AuthRequest(code))
-            }
-            println(response.bodyAsText())
-            val i: AuthResponse = response.body()
-            if (i.data.accessToken.isEmpty())
+            }.body()
+            if (response.data.accessToken.isEmpty())
                 return Result.failure(NullPointerException())
-            Result.success(i.data)
-
+            Result.success(response.data)
         } catch (e: Exception) {
             println("Token exchange failed: ${e.message}")
             Result.failure(e)
@@ -61,7 +57,6 @@ class AuthRepository @Inject constructor(private val httpClient: HttpClient) {
             }.body()
             if (response.data.accessToken.isEmpty())
                 return Result.failure(NullPointerException())
-            println("Refreshed access token: ${response.data.accessToken}")
             Result.success(response.data)
 
         } catch (e: Exception) {

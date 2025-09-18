@@ -33,8 +33,9 @@ class SearchApiUseCase @Inject constructor(
         coroutineScope {
             list.map { artist ->
                 async {
-                    val hasTracks = !findArtistTracks(artist.id).getOrNull().isNullOrEmpty()
-                    artist.takeIf { hasTracks }
+                    val tracks = findArtistTracks(artist.id).getOrNull()
+                        ?.filter { track ->  track.isStreamable }
+                    artist.takeIf { !tracks.isNullOrEmpty() }
                 }
             }.awaitAll()
                 .filterNotNull()
