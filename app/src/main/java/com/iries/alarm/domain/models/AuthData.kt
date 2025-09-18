@@ -1,6 +1,5 @@
 package com.iries.alarm.domain.models
 
-import io.ktor.util.date.getTimeMillis
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -12,8 +11,9 @@ data class AuthData(
     @SerialName("refresh_token")
     val refreshToken: String = "",
 
-    var timeStamp: Long = getTimeMillis(),
+    @SerialName("time_stamp")
+    var timeStamp: Long = 0,
 
     @SerialName("expires_in")
-    var expiresIn: Long = 1000 * 60 * 60
+    var expiresIn: Long = 0
 )

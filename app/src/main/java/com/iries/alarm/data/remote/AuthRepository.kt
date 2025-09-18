@@ -1,41 +1,46 @@
 package com.iries.alarm.data.remote
 
-import com.iries.alarm.BuildConfig
 import com.iries.alarm.domain.models.AuthData
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
-import io.ktor.http.Parameters
 import io.ktor.http.contentType
+import kotlinx.serialization.Serializable
 import javax.inject.Inject
 
 class AuthRepository @Inject constructor(private val httpClient: HttpClient) {
 
-    private val oathUrl = "https://secure.soundcloud.com/oauth/token"
+    private val baseAuthUrl = "https://api.iriesdev.workers.dev"
+
+    @Serializable
+    data class AuthRequest(
+        val code: String
+    )
+
+    @Serializable
+    data class TokenRefreshRequest(
+        val refreshToken: String
+    )
+
+    @Serializable
+    data class AuthResponse(
+        val success: Boolean,
+        val data: AuthData
+    )
 
     suspend fun exchangeAccessToken(code: String): Result<AuthData> {
         return try {
-            val response: AuthData = httpClient.post(oathUrl) {
-                contentType(ContentType.Application.FormUrlEncoded)
-                setBody(
-                    FormDataContent(
-                        Parameters.build {
-                            append("client_id", BuildConfig.client_id)
-                            append("client_secret", BuildConfig.client_secret)
-                            append("redirect_uri", BuildConfig.redirect_uri)
-                            append("grant_type", "authorization_code")
-                            append("code", code)
-                        }
-                    )
-                )
+            val response: AuthResponse = httpClient.post(
+                "$baseAuthUrl/alarm/user/auth"
+            ) {
+                contentType(ContentType.Application.Json)
+                setBody(AuthRequest(code))
             }.body()
-            if (response.accessToken.isEmpty())
+            if (response.data.accessToken.isEmpty())
                 return Result.failure(NullPointerException())
-            Result.success(response)
-
+            Result.success(response.data)
         } catch (e: Exception) {
             println("Token exchange failed: ${e.message}")
             Result.failure(e)
@@ -44,23 +49,15 @@ class AuthRepository @Inject constructor(private val httpClient: HttpClient) {
 
     suspend fun refreshAccessToken(refreshToken: String): Result<AuthData> {
         return try {
-            val response: AuthData = httpClient.post(oathUrl) {
-                contentType(ContentType.Application.FormUrlEncoded)
-                setBody(
-                    FormDataContent(
-                        Parameters.build {
-                            append("client_id", BuildConfig.client_id)
-                            append("client_secret", BuildConfig.client_secret)
-                            append("grant_type", "refresh_token")
-                            append("refresh_token", refreshToken)
-                        }
-                    )
-                )
+            val response: AuthResponse = httpClient.post(
+                "$baseAuthUrl/alarm/user/token/refresh"
+            ) {
+                contentType(ContentType.Application.Json)
+                setBody(TokenRefreshRequest(refreshToken))
             }.body()
-            if (response.accessToken.isEmpty())
+            if (response.data.accessToken.isEmpty())
                 return Result.failure(NullPointerException())
-            println("Refreshed access token: ${response.accessToken}")
-            Result.success(response)
+            Result.success(response.data)
 
         } catch (e: Exception) {
             println("Token refreshment failed: ${e.message}")
