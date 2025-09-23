@@ -45,7 +45,7 @@ class AuthUseCase @Inject constructor(
 
     suspend fun getAccessToken(): Result<String> {
         val isExpired = authData.accessToken.isEmpty() ||
-                (getTimeMillis() - authData.timeStamp >= authData.expiresIn * 1000)
+                (getTimeMillis() - authData.timeStamp >= authData.expiresIn)
 
         if (isExpired) {
             return refreshAccessToken(authData.refreshToken)
