@@ -12,7 +12,7 @@ import javax.inject.Inject
 
 class AuthRepository @Inject constructor(private val httpClient: HttpClient) {
 
-    private val baseAuthUrl = "https://api.iriesdev.workers.dev"
+    private val baseAuthUrl = "https://api.iriesdev.workers.dev/alarm"
 
     @Serializable
     data class AuthRequest(
@@ -33,7 +33,7 @@ class AuthRepository @Inject constructor(private val httpClient: HttpClient) {
     suspend fun exchangeAccessToken(code: String): Result<AuthData> {
         return try {
             val response: AuthResponse = httpClient.post(
-                "$baseAuthUrl/alarm/user/auth"
+                "$baseAuthUrl/user/auth"
             ) {
                 contentType(ContentType.Application.Json)
                 setBody(AuthRequest(code))
@@ -47,10 +47,11 @@ class AuthRepository @Inject constructor(private val httpClient: HttpClient) {
         }
     }
 
+    // to the backend
     suspend fun refreshAccessToken(refreshToken: String): Result<AuthData> {
         return try {
             val response: AuthResponse = httpClient.post(
-                "$baseAuthUrl/alarm/user/token/refresh"
+                "$baseAuthUrl/user/token/refresh"
             ) {
                 contentType(ContentType.Application.Json)
                 setBody(TokenRefreshRequest(refreshToken))

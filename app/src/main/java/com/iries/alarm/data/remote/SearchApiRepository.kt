@@ -1,39 +1,50 @@
 package com.iries.alarm.data.remote
 
 import com.iries.alarm.domain.models.Artist
-import com.iries.alarm.domain.models.Track
 import io.ktor.client.HttpClient
-import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import java.io.IOException
-import java.net.URLEncoder
 import javax.inject.Inject
 
 class SearchApiRepository @Inject constructor(private val httpClient: HttpClient) {
-    private val apiBaseUrl = "https://api.soundcloud.com"
+    private val apiBaseUrl = "https://api.iriesdev.workers.dev/alarm"
     private val json = Json { ignoreUnknownKeys = true }
 
-    private suspend fun getRequest(route: String, accessToken: String): Result<String> {
+    @Serializable
+    data class RandomTrackResponse(
+        val artistId: Long,
+        val trackId: Long,
+        val trackName: String,
+        val streamUrl: String
+    )
+
+    private suspend fun getRequest(route: String, requestBody: Map<String, Any>): Result<String> {
         return try {
             println("Requesting: $route")
-            val response: HttpResponse = httpClient.get("${apiBaseUrl}$route") {
-                header("Authorization", "OAuth $accessToken")
+            val response: HttpResponse = httpClient.post("${apiBaseUrl}$route") {
+                //header("Authorization", "OAuth $accessToken")
+                contentType(ContentType.Application.Json)
                 header("User-Agent", "Mozilla/5.0")
+                setBody(requestBody)
             }
             if (response.status == HttpStatusCode.OK) {
-                val body = response.bodyAsText()
-                if (body.isEmpty())
+                val responseBody = response.bodyAsText()
+                if (responseBody.isEmpty())
                     return Result.failure(NullPointerException())
-                println("Success! $body")
-                Result.success(body)
+                println("Success! $responseBody")
+                Result.success(responseBody)
             } else {
                 println("Error ${response.status}: ${response.bodyAsText()}")
                 Result.failure(Exception("HTTP ${response.status}"))
@@ -44,28 +55,16 @@ class SearchApiRepository @Inject constructor(private val httpClient: HttpClient
         }
     }
 
-    /*
-    suspend fun getUserInfo(accessToken: String): Result<Artist>{
-        val result = getRequest( "/me", accessToken)
-        return result.mapCatching { response ->
-            val jsonObject = json.parseToJsonElement(response).jsonObject
-            json.decodeFromJsonElement<Artist>(jsonObject)
-        }
-    }*/
-
     /** Artists search */
-    suspend fun findArtistsByName(artistName: String, accessToken: String): Result<List<Artist>> {
-        val encodedQuery = URLEncoder.encode(artistName, "UTF-8")
-        val url = "/users?" +
-                "q=$encodedQuery&limit=20&offset=0&linked_partitioning=true"
-        val result = getRequest(url, accessToken)
+    suspend fun findArtistsByName(artistName: String): Result<List<Artist>> {
+        val result = getRequest("/artists", mapOf("artistName" to artistName))
         return result.mapCatching { response ->
             parseArtistsResponse(response)
         }
     }
 
-    suspend fun findUserSubscriptions(accessToken: String):Result<List<Artist>> {
-        val result = getRequest( "/me/followings", accessToken)
+    suspend fun findUserSubscriptions(accessToken: String): Result<List<Artist>> {
+        val result = getRequest("/me/followings", mapOf("accessToken" to accessToken))
         return result.mapCatching { response ->
             parseArtistsResponse(response)
         }
@@ -73,47 +72,30 @@ class SearchApiRepository @Inject constructor(private val httpClient: HttpClient
 
     private fun parseArtistsResponse(jsonString: String): List<Artist> {
         val jsonObject = json.parseToJsonElement(jsonString).jsonObject
-        val collectionArray = jsonObject["collection"]!!.jsonArray
-        return collectionArray.map {
+        val collectionArray = jsonObject["collection"]?.jsonArray
+        return collectionArray?.map {
             json.decodeFromJsonElement<Artist>(it)
-        }
+        } ?: emptyList()
     }
 
     /** Tracks search */
-    /*suspend fun findTracksByGenre(genres: List<String>, accessToken: String): Result<List<Track>> {
+    /*suspend fun findTracksByGenre(genres: List<String>): Result<List<Track>> {
         val url = "/tracks?" +
                 "genres=${genres.joinToString(separator = ",")}"
-        val result = getRequest(url, accessToken)
+        val result = getRequest(url, mapOf("genres" to genres)
         return result.mapCatching { response ->
             parseTracksResponse(response)
         }
     }*/
 
-    suspend fun findArtistTracks(userId: Long, accessToken: String): Result<List<Track>> {
-        val result = getRequest("/users/$userId/tracks?", accessToken)
+    suspend fun findRandomTrackByArtist(artistId: Long): Result<RandomTrackResponse> {
+        val result = getRequest(
+            "/artists/tracks/random", mapOf("artistId" to artistId)
+        )
         return result.mapCatching { response ->
-            parseTracksResponse(response)
+            val data = json.parseToJsonElement(response).jsonObject["data"]
+                ?: throw IllegalStateException("Missing 'data' field")
+            json.decodeFromJsonElement<RandomTrackResponse>(data)
         }
-    }
-
-    private fun parseTracksResponse(jsonString: String): List<Track> {
-        val itemsArray = json.parseToJsonElement(jsonString).jsonArray
-        return itemsArray.map { element ->
-            json.decodeFromJsonElement<Track>(element)
-        }
-    }
-
-    /** Resolve stream url */
-    suspend fun resolveStreamUrl(trackId:Long, accessToken: String): Result<String> {
-        val result = getRequest("/tracks/$trackId/streams", accessToken)
-        return result.mapCatching {
-            parseResolvedUrl(it)
-        }
-    }
-
-    private fun parseResolvedUrl(jsonString: String): String {
-        println(jsonString)
-        val jsonObject = json.parseToJsonElement(jsonString).jsonObject
-        return jsonObject["http_mp3_128_url"]!!.jsonPrimitive.content
     }
 }
