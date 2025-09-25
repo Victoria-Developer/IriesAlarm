@@ -34,7 +34,6 @@ class SearchApiRepository @Inject constructor(private val httpClient: HttpClient
         return try {
             println("Requesting: $route")
             val response: HttpResponse = httpClient.post("${apiBaseUrl}$route") {
-                //header("Authorization", "OAuth $accessToken")
                 contentType(ContentType.Application.Json)
                 header("User-Agent", "Mozilla/5.0")
                 setBody(requestBody)
@@ -72,8 +71,9 @@ class SearchApiRepository @Inject constructor(private val httpClient: HttpClient
 
     private fun parseArtistsResponse(jsonString: String): List<Artist> {
         val jsonObject = json.parseToJsonElement(jsonString).jsonObject
-        val collectionArray = jsonObject["collection"]?.jsonArray
-        return collectionArray?.map {
+        val data = jsonObject["data"]?.jsonObject
+        val artistsArray = data?.get("filtered_artists")?.jsonArray
+        return artistsArray?.map {
             json.decodeFromJsonElement<Artist>(it)
         } ?: emptyList()
     }
