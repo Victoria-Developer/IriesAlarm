@@ -27,20 +27,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.iries.alarm.R
 import com.iries.alarm.presentation.screens.alarms.AlarmsScreen
-import com.iries.alarm.presentation.screens.auth.AuthScreen
 import com.iries.alarm.presentation.screens.music.MusicSearchScreen
 
 @Composable
 fun AppNavigation(
-    navController: NavHostController,
-    loginCode: String?
+    navController: NavHostController
 ) {
-
     val musicScreenDest = Destinations.ChannelsScreenDest.path
     val alarmsScreenDest = Destinations.AlarmsScreenDest.path
-    val authScreenDest = Destinations.AuthScreenDest.path
 
-    var currentPath by remember { mutableStateOf(authScreenDest) }
+    var currentPath by remember { mutableStateOf(alarmsScreenDest) }
 
     fun navigate(path: String) {
         if (currentPath == path) return
@@ -59,47 +55,38 @@ fun AppNavigation(
                 content = {
                     NavHost(
                         navController = navController,
-                        startDestination = authScreenDest
+                        startDestination = alarmsScreenDest
                     ) {
-                        composable(authScreenDest) {
-                            AuthScreen(
-                                loginCode = loginCode,
-                                onRedirectToMusicScreen = { navigate(musicScreenDest) },
-                                onRedirectToAlarmsScreen = { navigate(alarmsScreenDest) }
-                            )
-                        }
-
                         composable(musicScreenDest) {
-                            MusicSearchScreen(onRedirectToAuthScreen = { navigate(authScreenDest) })
+                            MusicSearchScreen()
                         }
                         composable(alarmsScreenDest) {
-                            AlarmsScreen()
+                            AlarmsScreen(onRedirect = { navigate(musicScreenDest) })
                         }
                     }
                 }
             )
         },
         bottomBar = {
-            if (currentPath != authScreenDest)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .navigationBarsPadding()
-                            .padding(bottom = 30.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        BottomNavigationItem(
-                            icon = R.drawable.musical_note,
-                            isSelected = currentPath == musicScreenDest,
-                            onClick = { navigate(musicScreenDest) }
-                        )
-                        BottomNavigationItem(
-                            icon = R.drawable.baseline_access_alarm_24,
-                            isSelected = currentPath == alarmsScreenDest,
-                            onClick = { navigate(alarmsScreenDest) }
-                        )
-                    }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(bottom = 30.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                BottomNavigationItem(
+                    icon = R.drawable.musical_note,
+                    isSelected = currentPath == musicScreenDest,
+                    onClick = { navigate(musicScreenDest) }
+                )
+                BottomNavigationItem(
+                    icon = R.drawable.baseline_access_alarm_24,
+                    isSelected = currentPath == alarmsScreenDest,
+                    onClick = { navigate(alarmsScreenDest) }
+                )
+            }
 
         }
     )

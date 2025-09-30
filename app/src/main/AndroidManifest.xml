@@ -5,79 +5,88 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="com.android.alarm.permission.SET_ALARM"/>
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:name=".AlarmApp"
-        android:usesCleartextTraffic="true"
-        android:enableOnBackInvokedCallback="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
+        android:enableOnBackInvokedCallback="true"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:supportsRtl="true"
         android:requestLegacyExternalStorage="true"
+        android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
         tools:targetApi="33">
 
         <activity
             android:name=".presentation.activities.MainActivity"
-            android:theme="@style/Theme.Launch"
+            android:exported="true"
             android:launchMode="singleTop"
-            android:exported="true">
+            android:theme="@style/Theme.Launch">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data
-                    android:scheme="iriesalarm"
-                    android:host="callback"/>
             </intent-filter>
         </activity>
 
         <activity
             android:name=".presentation.activities.AlarmActivity"
-            android:turnScreenOn="true"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:launchMode="singleTop"
             android:showOnLockScreen="true"
             android:theme="@style/Theme.AppCompat.NoActionBar"
-            android:exported="true"
-            android:excludeFromRecents="true"
-            android:launchMode="singleTop">
+            android:turnScreenOn="true">
+        </activity>
+
+        <activity
+            android:name=".presentation.activities.AuthActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:launchMode="singleTop"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="callback"
+                    android:scheme="iriesalarm" />
+            </intent-filter>
         </activity>
 
         <receiver
             android:name=".presentation.receivers.StartAlarmReceiver"
             android:enabled="true"
-            android:exported="true" >
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.NOTIFY" />
             </intent-filter>
         </receiver>
 
         <receiver
-            android:name=".presentation.receivers.UpdateReceiver"
-            android:enabled="true"
-            android:exported="true" >
-            <intent-filter>
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-            </intent-filter>
-        </receiver>
-
-        <receiver
             android:name=".presentation.receivers.StopAlarmReceiver"
             android:exported="false" />
+
+        <receiver
+            android:name=".presentation.receivers.UpdateReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".presentation.services.AlarmService"

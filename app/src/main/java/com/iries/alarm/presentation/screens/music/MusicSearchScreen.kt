@@ -1,5 +1,9 @@
 package com.iries.alarm.presentation.screens.music
 
+import android.app.Activity
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,9 +11,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -31,24 +37,39 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.network.HttpException
+import com.iries.alarm.domain.constants.AuthState
 import com.iries.alarm.domain.constants.SearchCategory
+import com.iries.alarm.presentation.activities.AuthActivity
 import com.iries.alarm.presentation.common.SearchBar
 import com.iries.alarm.presentation.common.Thumbnail
 
 @Composable
-fun MusicSearchScreen(onRedirectToAuthScreen: () -> Unit) {
+fun MusicSearchScreen() {
 
+    val context = LocalContext.current
     val viewModel: MusicSearchViewModel = hiltViewModel()
     val currentArtists = viewModel.visibleArtists.collectAsState()
     val savedArtists = viewModel.dbArtists.collectAsState()
     val error = viewModel.error.collectAsState()
     val isFetchRequest = viewModel.isFetchRequest.collectAsState()
+    val authState = viewModel.authorizationStatus.collectAsState()
     var selectedSearchCategory by remember {
         mutableStateOf(SearchCategory.SAVED_IN_DATABASE)
+    }
+
+    val authLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val code = result.data?.getStringExtra("code")
+            viewModel.authorize(code)
+        } else {
+            viewModel.updateError(Exception("Authorization error."))
+        }
     }
 
     if (error.value != null) {
@@ -66,12 +87,6 @@ fun MusicSearchScreen(onRedirectToAuthScreen: () -> Unit) {
             },
             text = { Text("Something went wrong. Please, try again.") }
         )
-
-        /*if (error.value is HttpException
-            && (error.value as HttpException).response.code == 401
-        ) {
-            onRedirectToAuthScreen()
-        }*/
     }
 
     @Composable
@@ -92,9 +107,38 @@ fun MusicSearchScreen(onRedirectToAuthScreen: () -> Unit) {
         )
     }
 
-    Column (modifier = Modifier.padding(top = 10.dp)){
-        SearchBar(onSearch = {
-            name -> viewModel.showArtistsByName(name)
+    if (authState.value == AuthState.Loading){
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Please, wait...")
+                CircularProgressIndicator()
+            }
+        }
+    } else Column(modifier = Modifier.padding(top = 10.dp)) {
+        Button(
+            modifier = Modifier
+                .align(Alignment.End)
+                .padding(end = 15.dp),
+            onClick = {
+                if (authState.value == AuthState.Unauthorized) {
+                    authLauncher.launch(Intent(context, AuthActivity::class.java))
+                } else {
+                    viewModel.logout()
+                }
+            }
+        ) {
+            Text(if (authState.value == AuthState.Unauthorized) "Login" else "Logout")
+        }
+
+        SearchBar(onSearch = { name ->
+            viewModel.showArtistsByName(name)
             selectedSearchCategory = SearchCategory.SEARCH_BY_KEYWORD
         })
 
@@ -105,7 +149,7 @@ fun MusicSearchScreen(onRedirectToAuthScreen: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Button(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.wrapContentWidth(),
                 colors = searchCategoryButtonColor(
                     SearchCategory.SAVED_IN_DATABASE
                 ),
@@ -117,18 +161,19 @@ fun MusicSearchScreen(onRedirectToAuthScreen: () -> Unit) {
                 Text("Favorites", maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
 
-            Button(
-                modifier = Modifier.weight(1f),
-                colors = searchCategoryButtonColor(
-                    SearchCategory.USER_SUBSCRIPTIONS
-                ),
-                onClick = {
-                    viewModel.showSubscriptions()
-                    selectedSearchCategory = SearchCategory.USER_SUBSCRIPTIONS
+            if (authState.value == AuthState.Authorized)
+                Button(
+                    modifier = Modifier.wrapContentWidth(),
+                    colors = searchCategoryButtonColor(
+                        SearchCategory.USER_SUBSCRIPTIONS
+                    ),
+                    onClick = {
+                        viewModel.showSubscriptions()
+                        selectedSearchCategory = SearchCategory.USER_SUBSCRIPTIONS
+                    }
+                ) {
+                    Text("Subscriptions", maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
-            ) {
-                Text("Subscriptions", maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
         }
 
         if (error.value == null && isFetchRequest.value) {
@@ -142,10 +187,10 @@ fun MusicSearchScreen(onRedirectToAuthScreen: () -> Unit) {
                 )
             }
         } else if (!currentArtists.value.isNullOrEmpty())
-            LazyColumn (
+            LazyColumn(
                 contentPadding = PaddingValues(20.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
-            ){
+            ) {
                 items(currentArtists.value!!.toList()) { visibleArtists ->
                     Row {
                         // Saved artist with the same id as the search result

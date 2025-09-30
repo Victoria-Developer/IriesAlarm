@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iries.alarm.domain.models.Alarm
 import com.iries.alarm.domain.usecases.AlarmsUseCase
+import com.iries.alarm.domain.usecases.SoundCloudApiUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.util.Calendar
@@ -16,20 +18,25 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlarmsViewModel @Inject constructor(
-    private val alarmsUseCase: AlarmsUseCase
+    private val alarmsUseCase: AlarmsUseCase,
+    private val soundCloudApiUseCase: SoundCloudApiUseCase
 ) : ViewModel() {
 
     private val _allAlarms = MutableStateFlow<List<Alarm>>(emptyList())
     val allAlarms: StateFlow<List<Alarm>> = _allAlarms
 
     init {
-        populateAlarms()
+        onInit()
     }
 
-    private fun populateAlarms() = viewModelScope.launch(Dispatchers.IO) {
+    private fun onInit() = viewModelScope.launch(Dispatchers.IO) {
         alarmsUseCase.getAllAlarms().collect { channels ->
             _allAlarms.value = channels
         }
+    }
+
+    suspend fun checkAvailableArtists() : Boolean {
+        return soundCloudApiUseCase.getAllArtists().first().isEmpty()
     }
 
     fun removeAlarm(alarm: Alarm) = viewModelScope.launch(Dispatchers.IO) {

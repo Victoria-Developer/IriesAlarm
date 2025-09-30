@@ -10,8 +10,4 @@ sealed interface Destinations {
     data object AlarmsScreenDest : Destinations {
         override val path: String = "AlarmsDest"
     }
-
-    data object AuthScreenDest : Destinations {
-        override val path: String = "AuthDest"
-    }
 }
