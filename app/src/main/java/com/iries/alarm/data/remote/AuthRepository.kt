@@ -6,6 +6,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.serialization.Serializable
 import javax.inject.Inject
@@ -62,6 +63,23 @@ class AuthRepository @Inject constructor(private val httpClient: HttpClient) {
 
         } catch (e: Exception) {
             println("Token refreshment failed: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+    suspend fun logout(accessToken: String):Result<Boolean> {
+        return try {
+            val response = httpClient.post(
+                "https://secure.soundcloud.com/sign-out"
+            ) {
+                contentType(ContentType.Application.Json)
+                setBody(mapOf("access_token" to accessToken))
+            }
+            if (response.status != HttpStatusCode.OK)
+                return Result.failure(Exception("HTTP ${response.status}"))
+            Result.success(true)
+        } catch (e: Exception) {
+            println("Logout failed: ${e.message}")
             Result.failure(e)
         }
     }

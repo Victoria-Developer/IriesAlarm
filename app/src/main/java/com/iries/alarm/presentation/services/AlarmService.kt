@@ -13,7 +13,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.iries.alarm.R
 import com.iries.alarm.domain.MediaPlayer
-import com.iries.alarm.domain.usecases.SearchApiUseCase
+import com.iries.alarm.domain.usecases.SoundCloudApiUseCase
 import com.iries.alarm.presentation.activities.AlarmActivity
 import com.iries.alarm.presentation.receivers.StopAlarmReceiver
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,7 +31,7 @@ class AlarmService : Service() {
     private lateinit var mediaPlayer: MediaPlayer
 
     @Inject
-    lateinit var searchApiUseCase: SearchApiUseCase
+    lateinit var soundCloudApiUseCase: SoundCloudApiUseCase
 
     companion object {
         const val NOTIFICATION_CHANNEL_CODE = "main_channel"
@@ -63,7 +63,7 @@ class AlarmService : Service() {
 
         // Find track and play a ringtone
         val ringtoneInfo = withContext(Dispatchers.IO) {
-            searchApiUseCase.findRandomRingtone()
+            soundCloudApiUseCase.findRandomRingtone()
         }
         val ringtoneUri = ringtoneInfo.trackUri
         if (ringtoneUri.isEmpty())

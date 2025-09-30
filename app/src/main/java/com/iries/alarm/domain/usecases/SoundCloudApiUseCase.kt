@@ -1,39 +1,45 @@
 package com.iries.alarm.domain.usecases
 
 import com.iries.alarm.data.local.repository.ArtistsRepository
+import com.iries.alarm.data.remote.AuthRepository
 import com.iries.alarm.data.remote.SearchApiRepository
 import com.iries.alarm.domain.models.Artist
+import com.iries.alarm.domain.models.AuthData
 import com.iries.alarm.domain.models.RingtoneInfo
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class SearchApiUseCase @Inject constructor(
+class SoundCloudApiUseCase @Inject constructor(
     private val artistsRepository: ArtistsRepository,
     private val searchApiRepository: SearchApiRepository,
-    private val authUseCase: AuthUseCase,
+    private val authRepository: AuthRepository,
 ) {
 
     /** Remote source */
-    // to the backend
-    private suspend fun <T> authGuard(apiMethod: suspend (String) -> Result<T>): Result<T> {
-        val accessToken = authUseCase.getAccessToken()
-        return accessToken.fold(
-            onSuccess = { token -> apiMethod(token) },
-            onFailure = { error -> Result.failure(error) }
-        )
+
+    /** Auth */
+    suspend fun authorize(code: String): Result<AuthData> {
+        return authRepository.exchangeAccessToken(code)
     }
 
+    suspend fun logout(accessToken: String): Result<Boolean> {
+        return authRepository.logout(accessToken)
+    }
+
+    // to backend
+    suspend fun refreshAccessToken(refreshToken: String): Result<AuthData> {
+        return authRepository.refreshAccessToken(refreshToken)
+    }
+
+    /** Search */
     suspend fun findArtistsByName(artistName: String): Result<List<Artist>> {
         return searchApiRepository.findArtistsByName(artistName)
     }
 
-    suspend fun findUserSubscriptions(): Result<List<Artist>> {
+    suspend fun findUserSubscriptions(accessToken: String): Result<List<Artist>> {
         // auth guard to the backend
-        return authGuard { accessToken ->
-            searchApiRepository.findUserSubscriptions(
-                accessToken
-            )
-        }
+        // just pass loaded access token instead
+        return searchApiRepository.findUserSubscriptions(accessToken)
     }
 
     suspend fun findRandomRingtone(): RingtoneInfo {

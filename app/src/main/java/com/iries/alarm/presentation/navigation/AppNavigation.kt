@@ -27,20 +27,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.iries.alarm.R
 import com.iries.alarm.presentation.screens.alarms.AlarmsScreen
-import com.iries.alarm.presentation.screens.auth.AuthScreen
 import com.iries.alarm.presentation.screens.music.MusicSearchScreen
 
 @Composable
 fun AppNavigation(
-    navController: NavHostController,
-    loginCode: String?
+    navController: NavHostController
 ) {
-
     val musicScreenDest = Destinations.ChannelsScreenDest.path
     val alarmsScreenDest = Destinations.AlarmsScreenDest.path
     val authScreenDest = Destinations.AuthScreenDest.path
 
-    var currentPath by remember { mutableStateOf(authScreenDest) }
+    var currentPath by remember { mutableStateOf(musicScreenDest) }
 
     fun navigate(path: String) {
         if (currentPath == path) return
@@ -59,18 +56,10 @@ fun AppNavigation(
                 content = {
                     NavHost(
                         navController = navController,
-                        startDestination = authScreenDest
+                        startDestination = musicScreenDest
                     ) {
-                        composable(authScreenDest) {
-                            AuthScreen(
-                                loginCode = loginCode,
-                                onRedirectToMusicScreen = { navigate(musicScreenDest) },
-                                onRedirectToAlarmsScreen = { navigate(alarmsScreenDest) }
-                            )
-                        }
-
                         composable(musicScreenDest) {
-                            MusicSearchScreen(onRedirectToAuthScreen = { navigate(authScreenDest) })
+                            MusicSearchScreen()
                         }
                         composable(alarmsScreenDest) {
                             AlarmsScreen()
