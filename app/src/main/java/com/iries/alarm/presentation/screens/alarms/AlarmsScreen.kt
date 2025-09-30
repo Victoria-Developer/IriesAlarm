@@ -19,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -35,12 +36,20 @@ import com.iries.alarm.presentation.common.TimePicker
 import java.time.LocalTime
 
 @Composable
-fun AlarmsScreen() {
+fun AlarmsScreen(onRedirect: () -> Unit) {
 
     val viewModel: AlarmsViewModel = hiltViewModel()
     var showDialog by remember { mutableStateOf(false) }
     val alarmsList = viewModel.allAlarms.collectAsState()
     val selectedAlarm: MutableState<Alarm> = remember { mutableStateOf(Alarm()) }
+
+    LaunchedEffect (Unit){
+        println("Rendering")
+        val shouldRedirect = viewModel.checkAvailableArtists()
+        if (shouldRedirect) {
+            onRedirect()
+        }
+    }
 
     Column(
         modifier = Modifier

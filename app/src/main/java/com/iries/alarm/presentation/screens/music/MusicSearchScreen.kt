@@ -121,8 +121,7 @@ fun MusicSearchScreen() {
                 CircularProgressIndicator()
             }
         }
-    } else
-    Column(modifier = Modifier.padding(top = 10.dp)) {
+    } else Column(modifier = Modifier.padding(top = 10.dp)) {
         Button(
             modifier = Modifier
                 .align(Alignment.End)

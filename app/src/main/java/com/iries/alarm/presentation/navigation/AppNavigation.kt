@@ -35,9 +35,8 @@ fun AppNavigation(
 ) {
     val musicScreenDest = Destinations.ChannelsScreenDest.path
     val alarmsScreenDest = Destinations.AlarmsScreenDest.path
-    val authScreenDest = Destinations.AuthScreenDest.path
 
-    var currentPath by remember { mutableStateOf(musicScreenDest) }
+    var currentPath by remember { mutableStateOf(alarmsScreenDest) }
 
     fun navigate(path: String) {
         if (currentPath == path) return
@@ -56,39 +55,38 @@ fun AppNavigation(
                 content = {
                     NavHost(
                         navController = navController,
-                        startDestination = musicScreenDest
+                        startDestination = alarmsScreenDest
                     ) {
                         composable(musicScreenDest) {
                             MusicSearchScreen()
                         }
                         composable(alarmsScreenDest) {
-                            AlarmsScreen()
+                            AlarmsScreen(onRedirect = { navigate(musicScreenDest) })
                         }
                     }
                 }
             )
         },
         bottomBar = {
-            if (currentPath != authScreenDest)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .navigationBarsPadding()
-                            .padding(bottom = 30.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        BottomNavigationItem(
-                            icon = R.drawable.musical_note,
-                            isSelected = currentPath == musicScreenDest,
-                            onClick = { navigate(musicScreenDest) }
-                        )
-                        BottomNavigationItem(
-                            icon = R.drawable.baseline_access_alarm_24,
-                            isSelected = currentPath == alarmsScreenDest,
-                            onClick = { navigate(alarmsScreenDest) }
-                        )
-                    }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(bottom = 30.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                BottomNavigationItem(
+                    icon = R.drawable.musical_note,
+                    isSelected = currentPath == musicScreenDest,
+                    onClick = { navigate(musicScreenDest) }
+                )
+                BottomNavigationItem(
+                    icon = R.drawable.baseline_access_alarm_24,
+                    isSelected = currentPath == alarmsScreenDest,
+                    onClick = { navigate(alarmsScreenDest) }
+                )
+            }
 
         }
     )
